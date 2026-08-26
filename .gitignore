@@ -1,0 +1,26 @@
+# Entornos virtuales
+venv/
+venv_usdclp/
+.venv/
+env/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Caché de datos y variables de entorno
+.cache/
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
