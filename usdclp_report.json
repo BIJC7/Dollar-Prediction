@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-08-25T21:33:04.396192",
+  "timestamp": "2026-08-25T21:41:01.991476",
   "signal_date": "2026-08-24",
   "current_price": 921.1300048828124,
   "signal": "BUY_USD",
   "probability_usd_up": 0.8743190288543701,
   "market_regime": "SYSTEMIC_STRESS",
   "vix": 15.850000381469728,
-  "stop_loss": 907.5240339006696,
-  "take_profit": 943.8066231863837,
+  "stop_loss": 906.0122593470982,
+  "take_profit": 947.5860595703123,
   "validation": {
     "n_folds": 28,
     "mean_directional_accuracy": 0.48674886621315194,

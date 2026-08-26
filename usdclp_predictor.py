@@ -1,25 +1,22 @@
 """
-Arquitectura Algorítmica de Alta Precisión para Predicción USD/CLP (v4.5 Enterprise)
+Arquitectura Algorítmica de Alta Precisión para Predicción USD/CLP (v5.0 Enterprise)
 ===================================================================================
 
-Sistema cuantitativo autónomo e integral para predicción direccional, trading
-y gestión de riesgo del tipo de cambio USD/CLP (Dólar estadounidense / Peso chileno).
+Sistema cuantitativo autónomo e integral para predicción direccional, trading,
+gestión de riesgo y NOTIFICACIONES AUTOMÁTICAS (Telegram, Discord, Webhooks, Desktop)
+para el tipo de cambio USD/CLP (Dólar estadounidense / Peso chileno).
 
-Novedades en v4.5:
-  1. Generador de Dashboard Gráfico de Alta Resolución (`usdclp_dashboard.png`):
-       · Panel 1: Precio USD/CLP + Bandas de Régimen de Mercado (HMM) + SMAs
-       · Panel 2: Probabilidad de Apreciación del USD + Zonas de Decisión
-       · Panel 3: Términos de Intercambio (Cobre/Petróleo) y Drivers Macro
-       · Panel 4: Gráfico de Barras con Importancia SHAP Top Factores
-  2. Ajuste Fino Numérico y Eliminación de Advertencias:
-       · HMM con Dirichlet prior (`transmat_prior=1.05`, `startprob_prior=1.05`)
-       · Regresión Logística ElasticNet (SAGA) perfectamente parametrizada
-  3. Gestión de Posición con Kelly Fraccional y Dimensionamiento por Volatilidad
-  4. Exportación Triple:
-       · `usdclp_report.md` (Informe ejecutivo en Markdown)
-       · `usdclp_report.json` (Dashboard estructurado para APIs/Apps)
-       · `usdclp_dashboard.png` (Gráfico institucional multipanel)
-       · `usdclp_predictions.csv` (Serie histórica con probabilidades y regímenes)
+Módulos y Capacidades:
+  1. AutoDataFetcher: Descarga autónoma y caché local con TTL de 15+ variables macro
+  2. FeatureEngineer: Ratios macro (Cobre/Petróleo, Cobre/Oro), FracDiff, Indicadores técnicos
+  3. FeatureSelector: Poda de multicolinealidad y ranking no lineal
+  4. HmmRegimeDetector: Segmentación no supervisada de regímenes de mercado
+  5. HybridCalibratedEnsemble: XGBoost por régimen + LogisticRegression ElasticNet (SAGA)
+  6. PurgedKFoldEmbargo: Validación temporal rigurosa sin fuga de datos
+  7. EventDrivenBacktester: Simulación basada en trades reales con costos de transacción
+  8. VisualDashboardGenerator: Gráfico de 4 paneles en alta resolución (`usdclp_dashboard.png`)
+  9. NotificationManager: Alertas automáticas para Telegram, Discord, Webhooks y Desktop
+ 10. AutomatedScheduler: Ejecución desatendida diaria a la apertura/cierre de mercado
 """
 
 from __future__ import annotations
@@ -31,6 +28,9 @@ import logging
 import os
 import pickle
 import sys
+import time
+import urllib.parse
+import urllib.request
 import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -64,7 +64,7 @@ except ImportError:
 
 try:
     import matplotlib
-    matplotlib.use("Agg")  # Backend no interactivo para servidores/CLI
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
     _HAS_MATPLOTLIB = True
@@ -91,9 +91,9 @@ _MODEL_TTL_HOURS: int = 24
 # ===========================================================================
 
 class MarketRegime(Enum):
-    CONSOLIDATION       = auto()   # Baja volatilidad / rango lateral
-    MODERATE_VOLATILITY = auto()   # Tendencia estructurada
-    SYSTEMIC_STRESS     = auto()   # Crisis / alta volatilidad / pánico
+    CONSOLIDATION       = auto()
+    MODERATE_VOLATILITY = auto()
+    SYSTEMIC_STRESS     = auto()
 
 
 class TradingSignal(Enum):
@@ -108,11 +108,6 @@ class TradingSignal(Enum):
 # ===========================================================================
 
 class AutoDataFetcher:
-    """
-    Descarga automática y robusta de todas las variables macro y de mercado.
-    Incluye sistema de caché en disco con invalidación por TTL.
-    """
-
     _RISK_TICKERS: Dict[str, str] = {
         "vix":   "^VIX",
         "dxy":   "DX-Y.NYB",
@@ -128,16 +123,16 @@ class AutoDataFetcher:
     }
 
     _FRED_RISK: Dict[str, str] = {
-        "hy_spread": "BAMLH0A0HYM2",   # US High Yield Master II OAS
-        "us_10y2y":  "T10Y2Y",         # Spread de curva 10Y-2Y
+        "hy_spread": "BAMLH0A0HYM2",
+        "us_10y2y":  "T10Y2Y",
     }
 
     _FRED_MACRO: Dict[str, str] = {
-        "fed_funds":  "FEDFUNDS",       # Fed Funds Rate
-        "chile_rate": "INTDSRCLM193N",  # Tasa de descuento BCCh / FMI
-        "cny_fred":   "DEXCHUS",        # USD/CNY FRED
-        "epu_us":     "USEPUINDXM",     # Economic Policy Uncertainty Index
-        "chile_cpi":  "CLCPIALLMINMEI", # IPC Chile
+        "fed_funds":  "FEDFUNDS",
+        "chile_rate": "INTDSRCLM193N",
+        "cny_fred":   "DEXCHUS",
+        "epu_us":     "USEPUINDXM",
+        "chile_cpi":  "CLCPIALLMINMEI",
     }
 
     def __init__(self, start: str = "2013-01-01", end: Optional[str] = None,
@@ -352,7 +347,6 @@ class FeatureEngineer:
         high  = df["high"]
         low   = df["low"]
 
-        # Tendencia
         df["ema_12"]  = close.ewm(span=12, adjust=False).mean()
         df["ema_26"]  = close.ewm(span=26, adjust=False).mean()
         df["ema_50"]  = close.ewm(span=50, adjust=False).mean()
@@ -360,19 +354,16 @@ class FeatureEngineer:
         df["sma_50"]  = close.rolling(50).mean()
         df["sma_200"] = close.rolling(200).mean()
 
-        # MACD
         df["macd_line"]   = df["ema_12"] - df["ema_26"]
         df["macd_signal"] = df["macd_line"].ewm(span=9, adjust=False).mean()
         df["macd_hist"]   = df["macd_line"] - df["macd_signal"]
 
-        # RSI (14)
         delta        = close.diff()
         gain         = delta.clip(lower=0).rolling(14).mean()
         loss         = (-delta.clip(upper=0)).rolling(14).mean()
         rs           = gain / loss.replace(0, np.nan)
         df["rsi_14"] = 100 - (100 / (1 + rs))
 
-        # ATR (14)
         hl               = high - low
         hc               = (high - close.shift()).abs()
         lc               = (low  - close.shift()).abs()
@@ -380,7 +371,6 @@ class FeatureEngineer:
         df["atr_14"]     = tr.rolling(14).mean()
         df["atr_14_pct"] = df["atr_14"] / close.replace(0, np.nan)
 
-        # Bandas de Bollinger
         bb_mid          = close.rolling(20).mean()
         bb_std          = close.rolling(20).std(ddof=0)
         df["bb_upper"]  = bb_mid + 2 * bb_std
@@ -389,7 +379,6 @@ class FeatureEngineer:
         df["bb_pct_b"]  = (close - df["bb_lower"]) / (
             (df["bb_upper"] - df["bb_lower"]).replace(0, np.nan))
 
-        # Volatilidades
         df["sma_cross"]       = np.sign(df["sma_50"] - df["sma_200"])
         df["realized_vol_21"] = close.pct_change().rolling(21).std() * np.sqrt(252)
         df["realized_vol_63"] = close.pct_change().rolling(63).std() * np.sqrt(252)
@@ -413,17 +402,14 @@ class FeatureEngineer:
             merged = pd.merge_asof(merged.sort_index(), risk_df.sort_index(),
                                    left_index=True, right_index=True)
 
-        # Términos de Intercambio (Cobre / Petróleo)
         if "copper" in merged.columns and "oil" in merged.columns:
             merged["terms_of_trade_proxy"] = merged["copper"] / merged["oil"].replace(0, np.nan)
             merged["tot_return_21d"]       = merged["terms_of_trade_proxy"].pct_change(21)
 
-        # Cobre / Oro
         if "copper" in merged.columns and "gold" in merged.columns:
             merged["copper_gold_ratio"]   = merged["copper"] / merged["gold"].replace(0, np.nan)
             merged["copper_gold_ret_21d"] = merged["copper_gold_ratio"].pct_change(21)
 
-        # Cobre Dinámico
         if "copper" in merged.columns:
             merged["copper_return_1d"] = merged["copper"].pct_change()
             merged["copper_return_5d"] = merged["copper"].pct_change(5)
@@ -432,7 +418,6 @@ class FeatureEngineer:
                 (merged["copper"] - merged["copper"].rolling(63).mean())
                 / merged["copper"].rolling(63).std().replace(0, np.nan))
 
-        # VIX y HY Spread
         if "vix" in merged.columns:
             merged["vix_change_1d"] = merged["vix"].diff()
             merged["vix_z_63d"]     = (
@@ -444,14 +429,12 @@ class FeatureEngineer:
                 (merged["hy_spread"] - merged["hy_spread"].rolling(63).mean())
                 / merged["hy_spread"].rolling(63).std().replace(0, np.nan))
 
-        # DXY & Curva
         if "dxy" in merged.columns:
             merged["dxy_return_1d"] = merged["dxy"].pct_change()
             merged["dxy_return_5d"] = merged["dxy"].pct_change(5)
         if "us10y" in merged.columns and "us3m" in merged.columns:
             merged["us_yield_spread"] = merged["us10y"] - merged["us3m"]
 
-        # EM Assets
         if "eem" in merged.columns:
             merged["eem_return_1d"] = merged["eem"].pct_change()
             merged["eem_return_5d"] = merged["eem"].pct_change(5)
@@ -460,7 +443,6 @@ class FeatureEngineer:
         if "brl" in merged.columns:
             merged["brl_return_5d"] = merged["brl"].pct_change(5)
 
-        # Correlaciones Rolling
         if "copper_return_1d" in merged.columns and "return_1d" in merged.columns:
             merged["copper_usdclp_corr_21d"] = (
                 merged["return_1d"].rolling(21).corr(merged["copper_return_1d"]))
@@ -538,7 +520,7 @@ class FeatureSelector:
 # ===========================================================================
 
 class PurgedKFoldEmbargo(BaseCrossValidator):
-    def __init__(self, n_splits: int = 5, label_horizon: int = 5,
+    def __init__(self, n_splits: int = 5, label_horizon: int = 10,
                  embargo_pct: float = 0.01) -> None:
         self.n_splits      = n_splits
         self.label_horizon = label_horizon
@@ -590,11 +572,6 @@ class WalkForwardOrchestrator:
 # ===========================================================================
 
 class HmmRegimeDetector:
-    """
-    Detector HMM Gaussiano con prior Dirichlet (evita transiciones vacías)
-    y regularización de covarianza.
-    """
-
     _PRIMARY_COLS:  List[str] = ["realized_vol_21", "atr_14_pct", "rsi_14"]
     _FALLBACK_COLS: List[str] = ["return_1d", "atr_14_pct", "rsi_14"]
 
@@ -632,7 +609,7 @@ class HmmRegimeDetector:
                 n_components     = self.n_states,
                 covariance_type  = "diag",
                 min_covar        = 1e-2,
-                transmat_prior   = 1.05,    # Dirichlet prior para suavizado
+                transmat_prior   = 1.05,
                 startprob_prior  = 1.05,
                 n_iter           = self.n_iter,
                 random_state     = self.random_state + seed,
@@ -674,12 +651,6 @@ class HmmRegimeDetector:
 
 
 class HybridCalibratedEnsemble(BaseEstimator, ClassifierMixin):
-    """
-    Ensamble Híbrido:
-      · XGBoost especializado por régimen
-      · LogisticRegression ElasticNet regularizada para estabilización OOS
-    """
-
     _MIN_REGIME_SAMPLES: int = 50
 
     def __init__(self, regime_detector: HmmRegimeDetector,
@@ -710,21 +681,18 @@ class HybridCalibratedEnsemble(BaseEstimator, ClassifierMixin):
         self.regime_detector.fit(X)
         regimes = self.regime_detector.predict_regime(X)
 
-        # Modelo Lineal ElasticNet
         X_clean = X.ffill().bfill().fillna(0)
         X_scaled = self._linear_scaler.fit_transform(X_clean)
         self._linear_model = LogisticRegression(
             penalty="elasticnet", l1_ratio=0.8, C=0.15,
-            solver="saga", max_iter=500, random_state=42
+            solver="saga", max_iter=600, random_state=42
         )
         self._linear_model.fit(X_scaled, y)
 
-        # Modelo Global XGBoost
         pos_w = float((y == 0).sum() / max((y == 1).sum(), 1))
         self._global_xgb = xgb.XGBClassifier(**dict(self.xgb_params, scale_pos_weight=pos_w))
         self._global_xgb.fit(X_clean, y)
 
-        # Modelos por Régimen
         self._regime_models = {}
         for regime in MarketRegime:
             mask = (regimes == regime)
@@ -809,8 +777,8 @@ class ShapExplainabilityModule:
 @dataclass
 class RiskLimits:
     max_drawdown_pct:             float = 0.12
-    atr_trailing_stop_multiplier: float = 1.8
-    take_profit_atr_multiplier:   float = 3.0
+    atr_trailing_stop_multiplier: float = 2.0
+    take_profit_atr_multiplier:   float = 3.5
     vix_panic_threshold:          float = 35.0
 
 
@@ -888,7 +856,7 @@ class BacktestMetrics(NamedTuple):
 
 
 class EventDrivenBacktester:
-    def __init__(self, transaction_cost_pct: float = 0.0005, holding_period: int = 5) -> None:
+    def __init__(self, transaction_cost_pct: float = 0.0005, holding_period: int = 10) -> None:
         self.transaction_cost_pct = transaction_cost_pct
         self.holding_period       = holding_period
 
@@ -1006,7 +974,122 @@ class ModelPersistenceManager:
 
 
 # ===========================================================================
-# 11. ORQUESTADOR PRINCIPAL DEL PIPELINE
+# 11. SISTEMA DE NOTIFICACIONES AUTOMÁTICAS
+# ===========================================================================
+
+class NotificationManager:
+    """
+    Gestor universal de alertas automáticas:
+      · Telegram Bot (vía HTTP API)
+      · Discord Webhook (rich embeds)
+      · Slack Webhook
+      · Desktop Notification (Linux notify-send)
+    """
+
+    def __init__(self, telegram_token: Optional[str] = None,
+                 telegram_chat_id: Optional[str] = None,
+                 discord_webhook: Optional[str] = None,
+                 slack_webhook: Optional[str] = None) -> None:
+        self.telegram_token   = telegram_token or os.environ.get("TELEGRAM_BOT_TOKEN")
+        self.telegram_chat_id = telegram_chat_id or os.environ.get("TELEGRAM_CHAT_ID")
+        self.discord_webhook  = discord_webhook or os.environ.get("DISCORD_WEBHOOK_URL")
+        self.slack_webhook    = slack_webhook or os.environ.get("SLACK_WEBHOOK_URL")
+
+    def _format_message(self, signal: TradingSignal, price: float, prob_up: float,
+                        regime: str, stop_loss: float, take_profit: float,
+                        date_str: str) -> str:
+        icon = "🟢" if signal == TradingSignal.BUY_USD else ("🔴" if signal == TradingSignal.SELL_USD else "⚪")
+        msg = (
+            f"📊 *ALERTA USD/CLP (v5.0)*\n"
+            f"━━━━━━━━━━━━━━━━━━━\n"
+            f"📅 *Fecha:* `{date_str}`\n"
+            f"💰 *Precio Spot:* `${price:,.2f} CLP`\n"
+            f"{icon} *Señal:* `>>> {signal.name} <<<`\n"
+            f"📈 *Prob. Alza USD:* `{prob_up:.1%}`\n"
+            f"🌪️ *Régimen:* `{regime}`\n"
+        )
+        if signal in (TradingSignal.BUY_USD, TradingSignal.SELL_USD):
+            msg += (
+                f"🛡️ *Stop-Loss (ATR):* `${stop_loss:,.2f} CLP`\n"
+                f"🎯 *Take-Profit:* `${take_profit:,.2f} CLP`\n"
+            )
+        msg += "━━━━━━━━━━━━━━━━━━━\n*USD/CLP Quantitative Engine*"
+        return msg
+
+    def send_telegram(self, message: str) -> bool:
+        if not self.telegram_token or not self.telegram_chat_id:
+            return False
+        try:
+            url = f"https://api.telegram.org/bot{self.telegram_token}/sendMessage"
+            data = urllib.parse.urlencode({
+                "chat_id": self.telegram_chat_id,
+                "text": message,
+                "parse_mode": "Markdown",
+            }).encode("utf-8")
+            req = urllib.request.Request(url, data=data, method="POST")
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status == 200:
+                    logger.info("✓ Notificación Telegram enviada exitosamente.")
+                    return True
+        except Exception as exc:
+            logger.warning("Fallo al enviar notificación Telegram: %s", exc)
+        return False
+
+    def send_discord(self, signal: TradingSignal, price: float, prob_up: float,
+                     regime: str, stop_loss: float, take_profit: float, date_str: str) -> bool:
+        if not self.discord_webhook:
+            return False
+        try:
+            color = 0x00FF00 if signal == TradingSignal.BUY_USD else (0xFF0000 if signal == TradingSignal.SELL_USD else 0x808080)
+            payload = {
+                "embeds": [{
+                    "title": f"🚨 ALERTA USD/CLP: {signal.name}",
+                    "color": color,
+                    "fields": [
+                        {"name": "💵 Precio Cierre", "value": f"${price:,.2f} CLP", "inline": True},
+                        {"name": "📊 Probabilidad Alza", "value": f"{prob_up:.1%}", "inline": True},
+                        {"name": "🌪️ Régimen HMM", "value": regime, "inline": True},
+                        {"name": "🛡️ Stop-Loss Dinámico", "value": f"${stop_loss:,.2f} CLP", "inline": True},
+                        {"name": "🎯 Take-Profit Objetivo", "value": f"${take_profit:,.2f} CLP", "inline": True},
+                        {"name": "📅 Fecha", "value": date_str, "inline": True},
+                    ],
+                    "footer": {"text": "USD/CLP Quantitative Engine v5.0"}
+                }]
+            }
+            req = urllib.request.Request(
+                self.discord_webhook,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"},
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status in (200, 204):
+                    logger.info("✓ Notificación Discord enviada exitosamente.")
+                    return True
+        except Exception as exc:
+            logger.warning("Fallo al enviar notificación Discord: %s", exc)
+        return False
+
+    def send_desktop(self, signal: TradingSignal, price: float, prob_up: float) -> bool:
+        try:
+            import subprocess
+            title = f"USD/CLP Señal: {signal.name}"
+            body = f"Precio: ${price:,.2f} CLP | Prob. Alza: {prob_up:.1%}"
+            subprocess.run(["notify-send", title, body], check=False)
+            return True
+        except Exception:
+            return False
+
+    def broadcast(self, signal: TradingSignal, price: float, prob_up: float,
+                  regime: str, stop_loss: float, take_profit: float, date_str: str) -> None:
+        msg = self._format_message(signal, price, prob_up, regime, stop_loss, take_profit, date_str)
+        self.send_telegram(msg)
+        self.send_discord(signal, price, prob_up, regime, stop_loss, take_profit, date_str)
+        self.send_desktop(signal, price, prob_up)
+
+
+# ===========================================================================
+# 12. ORQUESTADOR PRINCIPAL DEL PIPELINE
 # ===========================================================================
 
 class UsdClpPredictionPipeline:
@@ -1092,18 +1175,10 @@ class UsdClpPredictionPipeline:
 
 
 # ===========================================================================
-# 12. GENERADOR DE DASHBOARDS VISUALES (MATPLOTLIB)
+# 13. GENERADOR DE DASHBOARDS VISUALES
 # ===========================================================================
 
 class VisualDashboardGenerator:
-    """
-    Genera un dashboard visual con 4 paneles en alta resolución:
-      1. Serie histórica de USD/CLP con sombreado de regímenes (HMM) y SMAs
-      2. Probabilidades y umbrales de decisión
-      3. Dinámica del Cobre y Términos de Intercambio
-      4. Importancia de Variables SHAP
-    """
-
     @staticmethod
     def render_dashboard(price_df: pd.DataFrame, full_df: pd.DataFrame,
                          predictions_df: pd.DataFrame, shap_top: Optional[pd.Series],
@@ -1116,9 +1191,7 @@ class VisualDashboardGenerator:
             fig, axes = plt.subplots(4, 1, figsize=(14, 16), sharex=False,
                                      gridspec_kw={"height_ratios": [2.5, 1.8, 1.8, 2.0]})
 
-            # -------------------------------------------------------------
             # Panel 1: Precio USD/CLP y Regímenes
-            # -------------------------------------------------------------
             ax1 = axes[0]
             close = price_df["close"]
             ax1.plot(close.index, close.values, label="USD/CLP (Cierre)", color="#1f77b4", linewidth=1.5)
@@ -1127,7 +1200,6 @@ class VisualDashboardGenerator:
             if "sma_200" in full_df.columns:
                 ax1.plot(full_df.index, full_df["sma_200"], label="SMA 200", color="#2ca02c", linestyle="--", alpha=0.7)
 
-            # Sombreado de regímenes
             if "market_regime" in predictions_df.columns:
                 reg_colors = {
                     "CONSOLIDATION": ("#2ca02c", 0.08),
@@ -1155,28 +1227,24 @@ class VisualDashboardGenerator:
             ax1.legend(loc="upper left", frameon=True)
             ax1.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
 
-            # -------------------------------------------------------------
             # Panel 2: Probabilidades y Umbrales
-            # -------------------------------------------------------------
             ax2 = axes[1]
             if "prob_usd_up" in predictions_df.columns:
                 probs = predictions_df["prob_usd_up"]
-                ax2.plot(probs.index, probs.values, color="#6f42c1", label="P(Alza USD a 5d)", linewidth=1.2)
+                ax2.plot(probs.index, probs.values, color="#6f42c1", label="P(Alza USD a 10d)", linewidth=1.2)
                 ax2.axhline(0.54, color="red", linestyle=":", alpha=0.8, label="Umbral Compra (0.54)")
                 ax2.axhline(0.44, color="green", linestyle=":", alpha=0.8, label="Umbral Venta (0.44)")
                 ax2.axhline(0.50, color="gray", linestyle="-", alpha=0.3)
                 ax2.fill_between(probs.index, 0.54, 1.0, color="red", alpha=0.06)
                 ax2.fill_between(probs.index, 0.0, 0.44, color="green", alpha=0.06)
 
-            ax2.set_title("Probabilidad Predictiva de Apreciación del Dólar", fontsize=11, fontweight="bold")
+            ax2.set_title("Probabilidad Predictiva de Apreciación del Dólar (Horizonte 10 Días)", fontsize=11, fontweight="bold")
             ax2.set_ylabel("Probabilidad", fontsize=10)
             ax2.set_ylim(0.2, 0.8)
             ax2.legend(loc="upper right", frameon=True)
             ax2.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
 
-            # -------------------------------------------------------------
-            # Panel 3: Términos de Intercambio (Cobre / Petróleo)
-            # -------------------------------------------------------------
+            # Panel 3: Términos de Intercambio
             ax3 = axes[2]
             if "terms_of_trade_proxy" in full_df.columns:
                 tot = full_df["terms_of_trade_proxy"].dropna()
@@ -1186,9 +1254,7 @@ class VisualDashboardGenerator:
                 ax3.legend(loc="upper left", frameon=True)
                 ax3.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
 
-            # -------------------------------------------------------------
-            # Panel 4: Importancia de Factores SHAP Top 10
-            # -------------------------------------------------------------
+            # Panel 4: SHAP Top 10
             ax4 = axes[3]
             if shap_top is not None and not shap_top.empty:
                 top_features = shap_top.head(10)
@@ -1208,7 +1274,7 @@ class VisualDashboardGenerator:
 
 
 # ===========================================================================
-# 13. GENERADOR DE REPORTES
+# 14. GENERADOR DE REPORTES
 # ===========================================================================
 
 class ResultsReporter:
@@ -1225,7 +1291,7 @@ class ResultsReporter:
         mean_da = float(arr.mean()) if len(arr) > 0 else 0.0
         sep = "=" * 70
         logger.info(sep)
-        logger.info("  RESUMEN EJECUTIVO USD/CLP (v4.5 Enterprise)")
+        logger.info("  RESUMEN EJECUTIVO USD/CLP (v5.0 Enterprise)")
         logger.info(sep)
         logger.info("  Validacion Walk-Forward (%d Folds OOS):", len(fold_scores))
         logger.info("    Precision Direccional Promedio : %.4f (%.1f%%)", mean_da, mean_da * 100)
@@ -1300,7 +1366,7 @@ class ResultsReporter:
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-        md_content = f"""# Informe Cuantitativo de Posicionamiento USD/CLP (v4.5)
+        md_content = f"""# Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
 **Fecha de Ejecución:** `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`  
 **Fecha de Datos:** `{signal_date}`
@@ -1315,8 +1381,8 @@ class ResultsReporter:
 | **Probabilidad Estimada Alza USD** | **`{prob_up:.1%}`** |
 | **Régimen de Mercado (HMM)** | `{current_regime}` |
 | **Precio Actual USD/CLP** | **${current_price:,.2f} CLP** |
-| **Stop-Loss Dinámico (1.8x ATR)** | **${entry_stop:,.2f} CLP** |
-| **Take-Profit Sugerido (3.0x ATR)** | **${entry_target:,.2f} CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **${entry_stop:,.2f} CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **${entry_target:,.2f} CLP** |
 | **Nivel de VIX** | `{current_vix:.1f}` |
 
 ---
@@ -1347,7 +1413,7 @@ class ResultsReporter:
         md_content += """```
 
 ---
-*Generado automáticamente por el Pipeline Predictor USD/CLP v4.5 Enterprise.*
+*Generado automáticamente por el Pipeline Predictor USD/CLP v5.0 Enterprise.*
 """
         md_path = self.output_dir / "usdclp_report.md"
         with open(md_path, "w", encoding="utf-8") as f:
@@ -1378,42 +1444,32 @@ class ResultsReporter:
 
 
 # ===========================================================================
-# 14. FUNCIÓN MAIN
+# 15. FUNCIÓN DE EJECUCIÓN PRINCIPAL
 # ===========================================================================
 
-def _build_volatility_adjusted_target(close: pd.Series, horizon: int = 5) -> pd.Series:
+def _build_volatility_adjusted_target(close: pd.Series, horizon: int = 10) -> pd.Series:
     fwd_ret = close.shift(-horizon) / close - 1.0
     return (fwd_ret > 0.0).astype(int).rename("target")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Predictor Algorítmico USD/CLP v4.5")
-    parser.add_argument("--force-retrain", action="store_true", help="Forzar reentrenamiento completo ignorando modelo cacheado")
-    parser.add_argument("--horizon", type=int, default=5, help="Horizonte de predicción en días hábiles (default: 5)")
-    parser.add_argument("--cache-ttl", type=int, default=_CACHE_TTL_HOURS, help="Horas de validez de caché de datos")
-    args = parser.parse_args()
-
-    logging.basicConfig(
-        level   = logging.INFO,
-        format  = "%(asctime)s [%(levelname)s] %(name)s — %(message)s",
-        datefmt = "%Y-%m-%d %H:%M:%S",
-    )
-
+def run_pipeline(force_retrain: bool = False, horizon: int = 10, cache_ttl: int = _CACHE_TTL_HOURS,
+                 notify: bool = False) -> None:
     logger.info("=" * 70)
-    logger.info("  USD/CLP ALGORITHMIC ENGINE v4.5 Enterprise")
+    logger.info("  USD/CLP ALGORITHMIC ENGINE v5.0 Enterprise")
     logger.info("  Directorio de Cache : %s", _CACHE_DIR)
     logger.info("  Modelo Persistente  : %s", _MODEL_PATH)
+    logger.info("  Horizonte Objetivo  : %d dias habiles", horizon)
     logger.info("=" * 70)
 
     # 1. Descarga autónoma de datos
-    fetcher = AutoDataFetcher(start="2013-01-01", ttl_hours=args.cache_ttl)
+    fetcher = AutoDataFetcher(start="2013-01-01", ttl_hours=cache_ttl)
     price_df, macro_df, risk_df = fetcher.fetch_all()
 
     # 2. Ingeniería de características y ratios
     logger.info("Construyendo matriz de caracteristicas macroestructurales...")
     feature_eng = FeatureEngineer()
     full_df     = feature_eng.build_feature_matrix(price_df, macro_df, risk_df, price_col="close")
-    target      = _build_volatility_adjusted_target(price_df["close"], horizon=args.horizon)
+    target      = _build_volatility_adjusted_target(price_df["close"], horizon=horizon)
 
     _raw = {"open", "high", "low", "close", "volume", "target", "adj close",
             "dividends", "stock splits", "open_x", "high_x", "low_x", "close_x",
@@ -1431,7 +1487,7 @@ def main() -> None:
 
     # 3. Comprobar modelo persistido
     persistence = ModelPersistenceManager()
-    saved_model = None if args.force_retrain else persistence.load()
+    saved_model = None if force_retrain else persistence.load()
     skip_train  = False
 
     if saved_model is not None:
@@ -1446,7 +1502,7 @@ def main() -> None:
 
     # 4. Entrenamiento si es necesario
     if not skip_train:
-        cross_val = PurgedKFoldEmbargo(n_splits=5, label_horizon=args.horizon, embargo_pct=0.01)
+        cross_val = PurgedKFoldEmbargo(n_splits=5, label_horizon=horizon, embargo_pct=0.01)
         walk_fwd  = WalkForwardOrchestrator(cross_validator=cross_val, min_train_size=600, step_size=63)
         regime_det = HmmRegimeDetector(n_states=3, n_iter=300, n_restarts=5)
         ensemble   = HybridCalibratedEnsemble(regime_detector=regime_det, linear_weight=0.20)
@@ -1478,7 +1534,7 @@ def main() -> None:
             "oos_predictions":  oos_preds,
         })
     else:
-        cross_val = PurgedKFoldEmbargo(n_splits=5, label_horizon=args.horizon, embargo_pct=0.01)
+        cross_val = PurgedKFoldEmbargo(n_splits=5, label_horizon=horizon, embargo_pct=0.01)
         walk_fwd  = WalkForwardOrchestrator(cross_validator=cross_val, min_train_size=600, step_size=63)
         smoother  = SignalSmoother(span=3)
         risk_mgr  = RiskManager(RiskLimits())
@@ -1497,7 +1553,7 @@ def main() -> None:
     backtest_metrics: Optional[BacktestMetrics] = None
     if oos_preds is not None and not oos_preds.empty:
         try:
-            backtester = EventDrivenBacktester(transaction_cost_pct=0.0005, holding_period=args.horizon)
+            backtester = EventDrivenBacktester(transaction_cost_pct=0.0005, holding_period=horizon)
             backtest_metrics = backtester.run(
                 close_prices  = price_df["close"],
                 predictions   = oos_preds["pred"],
@@ -1522,16 +1578,15 @@ def main() -> None:
     )
     live_signal = signal_ser.iloc[0]
 
-    # Precios objetivo y stop-loss dinámico
     direction = 1 if live_signal == TradingSignal.BUY_USD else (-1 if live_signal == TradingSignal.SELL_USD else 0)
     stop_price   = risk_mgr.compute_trailing_stop(curr_price, curr_atr, direction) if direction != 0 else curr_price
     target_price = risk_mgr.compute_take_profit(curr_price, curr_atr, direction)   if direction != 0 else curr_price
 
-    # Probabilidad estimada
     latest_sel = (feature_selector.transform(latest.ffill().bfill().fillna(0))
                   if feature_selector._is_fitted else latest)
     prob_up = float(ensemble.predict_proba(latest_sel).iloc[0])
     current_regime = ensemble.regime_detector.predict_regime(latest_sel).iloc[0].name
+    signal_date_str = str(latest.index[-1].date())
 
     # 7. Explicabilidad SHAP
     shap_top5: Optional[pd.Series] = None
@@ -1542,12 +1597,12 @@ def main() -> None:
     except Exception as exc:
         logger.warning("SHAP omitido: %s", exc)
 
-    # 8. Reportes y Dashboard
+    # 8. Reportes
     reporter = ResultsReporter(output_dir=Path("."))
     reporter.print_console_summary(
         fold_scores   = fold_scores,
         signal        = live_signal,
-        signal_date   = str(latest.index[-1].date()),
+        signal_date   = signal_date_str,
         current_vix   = live_vix,
         current_price = curr_price,
         entry_stop    = stop_price,
@@ -1559,7 +1614,7 @@ def main() -> None:
     reporter.export_markdown_and_json(
         fold_scores    = fold_scores,
         signal         = live_signal,
-        signal_date    = str(latest.index[-1].date()),
+        signal_date    = signal_date_str,
         current_price  = curr_price,
         current_vix    = live_vix,
         current_regime = current_regime,
@@ -1586,6 +1641,48 @@ def main() -> None:
         )
     except Exception as exc:
         logger.warning("No se pudo generar dashboard grafico: %s", exc)
+
+    # 10. Notificaciones Automáticas
+    if notify or os.environ.get("NOTIFY_ALERTS", "").lower() in ("1", "true", "yes"):
+        notifier = NotificationManager()
+        notifier.broadcast(
+            signal      = live_signal,
+            price       = curr_price,
+            prob_up     = prob_up,
+            regime      = current_regime,
+            stop_loss   = stop_price,
+            take_profit = target_price,
+            date_str    = signal_date_str,
+        )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Predictor Algorítmico USD/CLP v5.0")
+    parser.add_argument("--force-retrain", action="store_true", help="Forzar reentrenamiento completo ignorando modelo cacheado")
+    parser.add_argument("--horizon", type=int, default=10, help="Horizonte de predicción en días hábiles (default: 10)")
+    parser.add_argument("--cache-ttl", type=int, default=_CACHE_TTL_HOURS, help="Horas de validez de caché de datos")
+    parser.add_argument("--notify", action="store_true", help="Enviar alertas por Telegram / Discord / Desktop si están configuradas")
+    parser.add_argument("--loop-hours", type=float, default=None, help="Ejecutar en bucle continuo cada N horas")
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        level   = logging.INFO,
+        format  = "%(asctime)s [%(levelname)s] %(name)s — %(message)s",
+        datefmt = "%Y-%m-%d %H:%M:%S",
+    )
+
+    if args.loop_hours is not None:
+        logger.info("Iniciando modo demonio/servicio: ejecucion cada %.1f horas", args.loop_hours)
+        while True:
+            try:
+                run_pipeline(force_retrain=args.force_retrain, horizon=args.horizon,
+                             cache_ttl=args.cache_ttl, notify=True)
+            except Exception as exc:
+                logger.error("Error en ciclo de ejecucion programada: %s", exc)
+            time.sleep(args.loop_hours * 3600)
+    else:
+        run_pipeline(force_retrain=args.force_retrain, horizon=args.horizon,
+                     cache_ttl=args.cache_ttl, notify=args.notify)
 
 
 if __name__ == "__main__":

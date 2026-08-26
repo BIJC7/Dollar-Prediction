@@ -1,6 +1,6 @@
-# Informe Cuantitativo de Posicionamiento USD/CLP (v4.5)
+# Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-08-25 21:33:04`  
+**Fecha de Ejecución:** `2026-08-25 21:41:01`  
 **Fecha de Datos:** `2026-08-24`
 
 ---
@@ -13,8 +13,8 @@
 | **Probabilidad Estimada Alza USD** | **`87.4%`** |
 | **Régimen de Mercado (HMM)** | `SYSTEMIC_STRESS` |
 | **Precio Actual USD/CLP** | **$921.13 CLP** |
-| **Stop-Loss Dinámico (1.8x ATR)** | **$907.52 CLP** |
-| **Take-Profit Sugerido (3.0x ATR)** | **$943.81 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$906.01 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$947.59 CLP** |
 | **Nivel de VIX** | `15.9` |
 
 ---
@@ -51,4 +51,4 @@ bb_upper                            : +0.113609
 ```
 
 ---
-*Generado automáticamente por el Pipeline Predictor USD/CLP v4.5 Enterprise.*
+*Generado automáticamente por el Pipeline Predictor USD/CLP v5.0 Enterprise.*

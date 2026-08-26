@@ -1,13 +1,14 @@
-# 📈 USD/CLP Algorithmic Prediction & Trading Architecture (v4.5 Enterprise)
+# 📈 USD/CLP Algorithmic Prediction & Trading Architecture (v5.0 Enterprise)
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Market](https://img.shields.io/badge/FX-USD%2FCLP-green.svg)]()
-[![Model](https://img.shields.io/badge/Architecture-HMM%20%2B%20XGBoost%20%2B%20ElasticNet-purple.svg)]()
+[![Notifications](https://img.shields.io/badge/Alerts-Telegram%20%7C%20Discord%20%7C%20Desktop-blueviolet.svg)]()
+[![Architecture](https://img.shields.io/badge/Model-HMM%20%2B%20XGBoost%20%2B%20ElasticNet-purple.svg)]()
 
-Sistema cuantitativo e institucional de pronóstico direccional, detección de regímenes de mercado y gestión de riesgo para el tipo de cambio **Dólar Estadounidense frente al Peso Chileno (USD/CLP)**.
+Sistema cuantitativo e institucional de pronóstico direccional, detección de regímenes de mercado, gestión de riesgo y **alertas automatizadas** para el tipo de cambio **Dólar Estadounidense frente al Peso Chileno (USD/CLP)**.
 
-El sistema es **100% autónomo**: descarga, limpia, alinea y procesa todas las fuentes de datos macroeconómicas y financieras globales por sí mismo, entrenando modelos adaptativos mediante validación cruzada purgada y generando reportes ejecutivos, gráficos y dashboards automáticamente.
+El sistema es **100% autónomo**: descarga, limpia, alinea y procesa todas las fuentes de datos macroeconómicas y financieras globales por sí mismo, entrena modelos adaptativos mediante validación cruzada purgada y distribuye reportes ejecutivos, dashboards gráficos y notificaciones en tiempo real.
 
 ---
 
@@ -58,10 +59,10 @@ El sistema es **100% autónomo**: descarga, limpia, alinea y procesa todas las f
                         │  · Explicabilidad SHAP (Impacto Marginal de Features)  │
                         └───────────────────────────┬────────────────────────────┘
                                                     │
-                        ┌───────────────────────────┴────────────────────────────┐
-                        ▼                                                        ▼
-            📊 Dashboard Gráfico Multi-Panel                     📄 Reportes Ejecutivo & JSON
-               (`usdclp_dashboard.png`)                              (`usdclp_report.md/json`)
+       ┌──────────────────────────────┬─────────────┴────────────────┬──────────────────────────────┐
+       ▼                              ▼                              ▼                              ▼
+📊 Dashboard Gráfico          📄 Reporte Markdown            🌐 Dashboard JSON            🔔 Alertas Automáticas
+(`usdclp_dashboard.png`)      (`usdclp_report.md`)           (`usdclp_report.json`)        (Telegram, Discord, OS)
 ```
 
 ---
@@ -75,26 +76,27 @@ El programa no requiere APIs de pago ni descarga manual de archivos. Se conecta 
 * **Caché Inteligente con TTL**: Los datos se almacenan localmente en `~/.cache/usdclp_predictor/` y se actualizan automáticamente según el período de validez configurado (default: 12 horas).
 
 ### 2. 🔬 Fundamentos Cuantitativos Avanzados
-* **Diferenciación Fraccional ($d \in [0, 1]$)**: A diferencia del retorno simple ($d=1$) que destruye la memoria temporal, la diferenciación fraccional (metodología de Marcos López de Prado) calcula el orden mínimo óptimo $d^*$ que garantiza estacionariedad (test ADF) preservando la memoria predictiva de largo plazo.
+* **Diferenciación Fraccional ($d \in [0, 1]$)**: Metodología de Marcos López de Prado para lograr estacionariedad preservando memoria de largo plazo.
 * **Ratios Macroestructurales de Chile**:
-  * **Términos de Intercambio (Cobre / Petróleo)**: Relación entre la principal exportación minera de Chile y su mayor importación energética.
-  * **Ratio Cobre / Oro**: Indicador líder del ciclo global de materias primas y apetito de riesgo vs activos de refugio.
-  * **Diferencial de Tasas Reales (Chile vs EE.UU.)**: Flujos de *carry trade*.
-* **Detección No Supervisada de Regímenes (HMM)**: Modelo de Markov Oculto Gaussiano con regularización Dirichlet prior (`transmat_prior=1.05`) que segmenta la dinámica del mercado en 3 estados de volatilidad y tensión sistémica.
-* **Ensamble Híbrido Calibrado**: Combina sub-árboles XGBoost adaptados a cada régimen con una regresión lineal ElasticNet (SAGA) que actúa como ancla estabilizadora fuera de muestra.
-* **Validación Purged K-Fold con Embargo**: Previene estrictamente el sesgo de anticipación (*look-ahead bias*) y la fuga de información temporal entre entrenamiento y prueba.
+  * **Términos de Intercambio (Cobre / Petróleo)**: Relación exportación minera / importación energética.
+  * **Ratio Cobre / Oro**: Indicador líder de ciclo global y apetito de riesgo.
+  * **Diferencial de Tasas Reales**: Chile vs EE.UU.
+* **Detección No Supervisada de Regímenes (Gaussian HMM)**: Con regularización Dirichlet prior (`transmat_prior=1.05`) para evitar artefactos numéricos.
+* **Ensamble Híbrido Calibrado**: XGBoost condicionado al régimen + ancla lineal ElasticNet (SAGA).
+* **Validación Purged K-Fold con Embargo**: Elimina el sesgo de anticipación (*look-ahead bias*).
 
-### 3. 🛡️ Gestión de Riesgo Institucional
-* **Trailing Stop Dinámico basado en ATR**: Stop-loss ajustado a la volatilidad real del mercado ($1.8 \times \text{ATR}$).
-* **Take-Profit Asimétrico ($3.0 \times \text{ATR}$)**: Relación Beneficio/Riesgo favorable ($1 : 1.66$).
-* **Emergency Exit**: Cortafuegos automático ante picos de pánico financiero global ($\text{VIX} \ge 35$).
-* **Filtro de Convicción Asimétrico**: El sistema solo ejecuta operaciones de alta probabilidad ($\ge 54\%$ para compra y $\le 44\%$ para venta), manteniéndose en liquidez (`HOLD`) durante fases de ruido o indecisión.
+### 3. 🔔 Sistema de Notificaciones Automáticas
+Soporte nativo sin librerías externas pesadas (usando HTTP estándar):
+* **Telegram Bot**: Mensajes enriquecidos con formato Markdown, señal, niveles de precio, stop-loss y probabilidades.
+* **Discord Webhook**: Rich Embeds con código de color dinámico (Verde = Compra, Rojo = Venta, Gris = Hold).
+* **Notificaciones de Escritorio**: Integración con el sistema de notificaciones del SO (`notify-send` en Linux).
+* **Modo Demonio / Bucle**: Ejecución programada periódica cada $N$ horas (`--loop-hours 4`).
 
 ---
 
 ## 📊 Métricas de Rendimiento (Walk-Forward OOS)
 
-Resultados obtenidos en validación temporal continua fuera de muestra (**28 Folds Walk-Forward entre 2016 y 2026**):
+Resultados en validación temporal continua fuera de muestra (**28 Folds Walk-Forward entre 2016 y 2026, horizonte 10 días**):
 
 | Métrica de Desempeño | Valor OOS | Descripción |
 | :--- | :---: | :--- |
@@ -134,7 +136,7 @@ pip install -r requirements.txt
 
 ---
 
-## 💻 Guía de Uso
+## 💻 Guía de Uso y Comandos
 
 ### 1. Inferencia Rápida (Uso Diario)
 Utiliza el modelo entrenado y la caché local. Ejecuta en **2 a 3 segundos**:
@@ -142,57 +144,61 @@ Utiliza el modelo entrenado y la caché local. Ejecuta en **2 a 3 segundos**:
 python usdclp_predictor.py
 ```
 
-### 2. Reentrenamiento Forzado Completo
+### 2. Inferencia con Notificación Automática
+```bash
+# Envía alertas a los canales configurados (Telegram / Discord / Escritorio)
+python usdclp_predictor.py --notify
+```
+
+### 3. Reentrenamiento Forzado Completo
 Descarga las últimas actualizaciones de todas las fuentes y recalibra el ensamble:
 ```bash
 python usdclp_predictor.py --force-retrain
 ```
 
-### 3. Ajustar Parámetros de Simulación
+### 4. Modo Servicio / Bucle Desatendido
+Ejecuta el pipeline de forma continua cada 4 horas y envía notificaciones:
 ```bash
-# Cambiar el horizonte de predicción a 10 días:
-python usdclp_predictor.py --horizon 10
+python usdclp_predictor.py --loop-hours 4 --notify
+```
 
-# Configurar el tiempo de vida de la caché (en horas):
-python usdclp_predictor.py --cache-ttl 6
+---
+
+## ⚙️ Configuración de Alertas (Variables de Entorno)
+
+Puedes configurar las credenciales de alerta exportando las variables en tu entorno o en tu archivo `~/.bashrc` / `.env`:
+
+### Telegram
+1. Habla con `@BotFather` en Telegram para crear un bot y obtener tu `TELEGRAM_BOT_TOKEN`.
+2. Obtén tu `TELEGRAM_CHAT_ID` (por ejemplo, mediante `@userinfobot`).
+3. Exporta las variables:
+```bash
+export TELEGRAM_BOT_TOKEN="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
+export TELEGRAM_CHAT_ID="987654321"
+```
+
+### Discord
+1. En tu servidor de Discord, ve a **Ajustes de canal ➔ Integraciones ➔ Webhooks ➔ Crear Webhook**.
+2. Copia la URL del Webhook y expórtala:
+```bash
+export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
 ```
 
 ---
 
 ## 📂 Archivos Generados por el Pipeline
 
-Al ejecutarse, el sistema genera automáticamente:
-
-1. 🖼️ **`usdclp_dashboard.png`**: Gráfico de 4 paneles en alta resolución que incluye:
-   * Precio spot USD/CLP con sombreado de regímenes HMM y medias móviles (SMA 50 / 200).
-   * Evolución de las probabilidades predictivas con zonas de decisión de compra/venta.
-   * Evolución macro de los Términos de Intercambio (Cobre / Petróleo).
-   * Gráfico de barras con el impacto marginal de las variables explicativas SHAP.
-2. 📑 **`usdclp_report.md`**: Informe ejecutivo formateado en Markdown con la señal vigente, niveles de Stop/Target y resumen de rendimiento.
-3. 🌐 **`usdclp_report.json`**: Datos estructurados para integración con APIs, bots de alertas o paneles web.
-4. 📈 **`usdclp_predictions.csv`**: Histórico completo de observaciones con probabilidades, regímenes y direcciones estimadas.
-5. 💾 **`usdclp_model.pkl`**: Serialización del ensamble y calibrador para inferencia instantánea.
-
----
-
-## 🔍 Interpretación de Factores SHAP (Explicabilidad)
-
-El modelo no es una "caja negra". En cada predicción descompone la contribución exacta de cada variable macro:
-
-| Factor | Significado Económico | Impacto Habitual en USD/CLP |
-| :--- | :--- | :--- |
-| **`tot_return_21d`** | Términos de Intercambio (Cobre / WTI) | Si sube ➔ Apreciación del CLP (Baja USD/CLP) |
-| **`copper_return_1d/5d`** | Retorno del Cobre COMEX | Correlación inversa estructural con USD/CLP |
-| **`us10y`** | Rendimiento del Bono del Tesoro EE.UU. 10Y | Si sube ➔ Fortalecimiento del Dólar global (Sube USD/CLP) |
-| **`eem_return_1d`** | Flujos a Mercados Emergentes (ETF EEM) | Entrada de capitales a LatAm ➔ Fortalece al Peso |
-| **`vix_z_63d`** | Z-Score de Volatilidad Global | En picos de aversión al riesgo ➔ Vuelo a la calidad hacia el USD |
-| **`rate_differential`** | Diferencial TPM Chile − Fed Funds | Flujos de *carry trade* y diferencial de tasas de interés |
+1. 🖼️ **`usdclp_dashboard.png`**: Gráfico de 4 paneles en alta resolución con sombreado de regímenes, probabilidades, términos de intercambio y barras SHAP.
+2. 📑 **`usdclp_report.md`**: Informe ejecutivo formateado en Markdown.
+3. 🌐 **`usdclp_report.json`**: Datos estructurados para APIs y dashboards web.
+4. 📈 **`usdclp_predictions.csv`**: Histórico completo de observaciones con probabilidades y regímenes.
+5. 💾 **`usdclp_model.pkl`**: Serialización del modelo para inferencia instantánea.
 
 ---
 
 ## ⚠️ Consideraciones y Descargo de Responsabilidad (Disclaimer)
 
-* **Propósito Educativo y Cuantitativo:** Este software ha sido desarrollado con fines de investigación cuantitativa, análisis algorítmico y modelado econométrico.
+* **Propósito Cuantitativo y Educativo:** Este software ha sido desarrollado con fines de investigación cuantitativa, análisis algorítmico y modelado econométrico.
 * **Riesgo Financiero:** El mercado de divisas (Forex) y el tipo de cambio USD/CLP presentan volatilidad y riesgo de pérdida de capital. Ningún modelo algorítmico garantiza rendimientos futuros.
 * **Costos y Deslizamiento:** Las simulaciones incluyen costos de transacción estimados (5 pips), pero no contemplan posibles deslizamientos (*slippage*) durante eventos noticiosos de extrema iliquidez o festivos locales de Chile.
 
