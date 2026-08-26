@@ -77,6 +77,28 @@ warnings.filterwarnings("ignore", category=UserWarning, module="hmmlearn")
 warnings.filterwarnings("ignore", category=FutureWarning)
 logging.getLogger("hmmlearn").setLevel(logging.ERROR)
 
+def _load_dotenv() -> None:
+    """Carga variables de entorno desde un archivo .env local si existe."""
+    env_file = Path(".env")
+    if not env_file.exists():
+        return
+    try:
+        with open(env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                k = k.strip()
+                v = v.strip().strip("'"")
+                if k and k not in os.environ:
+                    os.environ[k] = v
+    except Exception as exc:
+        logger.debug("No se pudo leer .env: %s", exc)
+
+_load_dotenv()
+
+
 _CACHE_DIR: Path = Path(
     os.environ.get("USDCLP_CACHE_DIR",
                    str(Path.home() / ".cache" / "usdclp_predictor"))
