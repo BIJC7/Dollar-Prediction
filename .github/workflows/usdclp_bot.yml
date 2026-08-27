@@ -1,0 +1,51 @@
+name: USD/CLP Cloud Predictor & Alerts
+
+on:
+  schedule:
+    # Horarios bursátiles Chile (Lunes a Viernes: 09:00, 13:30 y 16:30 CLT -> 13:00, 17:30, 20:30 UTC)
+    - cron: '0 13 * * 1-5'
+    - cron: '30 17 * * 1-5'
+    - cron: '30 20 * * 1-5'
+  workflow_dispatch: # Permite disparo manual desde GitHub o CLI
+
+permissions:
+  contents: write
+
+jobs:
+  run-prediction:
+    name: Run USD/CLP Engine & Notify Discord
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute USD/CLP Pipeline & Send Notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          NOTIFY_ALERTS: "true"
+        run: |
+          python usdclp_predictor.py --notify
+
+      - name: Commit & Push Updated Reports and Dashboard
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add usdclp_dashboard.png usdclp_report.md usdclp_report.json usdclp_predictions.csv
+          if git diff --staged --quiet; then
+            echo "No hay cambios en los reportes para confirmar."
+          else
+            git commit -m "chore(bot): Actualización automática de reportes y dashboard [skip ci]"
+            git push origin main
+          fi
