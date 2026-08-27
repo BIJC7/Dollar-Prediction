@@ -37,6 +37,9 @@ from datetime import datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+import zoneinfo
+
+_SANTIAGO_TZ = zoneinfo.ZoneInfo("America/Santiago")
 
 import numpy as np
 import pandas as pd
@@ -297,6 +300,43 @@ class AutoDataFetcher:
         macro_df = self.fetch_macro_indicators(price_df.index)
         risk_df  = self.fetch_risk_indicators(price_df.index)
         return price_df, macro_df, risk_df
+
+
+# ===========================================================================
+# 1.1 VALIDADOR DE INTEGRIDAD DE DATOS (FAIL-SAFE)
+# ===========================================================================
+
+class DataIntegrityValidator:
+    """
+    Validador de Integridad de Datos y Fail-Safe de Ejecución:
+    - Previene ejecución con datos en cero o NaN ante caídas de APIs (LME, Yuan, Fed).
+    - Valida que la última cotización no tenga un desfase anómalo (> 4 días por festivos).
+    - Valida rangos razonables del tipo de cambio ($500 - $1.500 CLP).
+    """
+    @staticmethod
+    def validate_pre_inference(price_df: pd.DataFrame, macro_df: pd.DataFrame,
+                               risk_df: pd.DataFrame) -> Tuple[bool, str]:
+        if price_df is None or price_df.empty or "close" not in price_df.columns:
+            return False, "La serie de precios USD/CLP no contiene datos u omitió columna 'close'."
+
+        last_date = price_df.index[-1].date()
+        today = datetime.now(_SANTIAGO_TZ).date()
+        days_lag = (today - last_date).days
+
+        if days_lag > 4:
+            return False, f"Datos de USD/CLP desactualizados (última barra: {last_date}, desfase: {days_lag} días)."
+
+        last_price = float(price_df["close"].iloc[-1])
+        if not (500.0 <= last_price <= 1500.0) or np.isnan(last_price):
+            return False, f"Precio spot (${last_price:,.2f} CLP) fuera de los límites razonables de seguridad."
+
+        # Validar que existan datos de mercado esenciales (Cobre o VIX)
+        if "copper" in macro_df.columns and macro_df["copper"].dropna().empty:
+            return False, "Serie crítica de Cobre (HG=F) completamente vacía o corrupta."
+        if "vix" in risk_df.columns and risk_df["vix"].dropna().empty:
+            return False, "Serie crítica de VIX (^VIX) completamente vacía o corrupta."
+
+        return True, "Integridad de datos validada al 100%."
 
 
 # ===========================================================================
@@ -1110,6 +1150,35 @@ class NotificationManager:
         except Exception:
             return False
 
+    def send_fail_safe_alert(self, title: str, details: str) -> bool:
+        if not self.discord_webhook:
+            return False
+        try:
+            payload = {
+                "embeds": [{
+                    "title": f"⚠️ FAIL-SAFE: {title}",
+                    "color": 0xF1C40F,
+                    "description": "Se ha suspendido la emisión de señales para proteger la cuenta debido a una anomalía en las fuentes de datos.",
+                    "fields": [
+                        {"name": "Motivo", "value": details, "inline": False},
+                        {"name": "Acción Preventiva", "value": "Ejecución abortada de forma segura (sin emitir órdenes ciegas). Se reintentará en el próximo corte.", "inline": False},
+                        {"name": "Hora Santiago", "value": datetime.now(_SANTIAGO_TZ).strftime("%Y-%m-%d %H:%M:%S CLT"), "inline": True},
+                    ],
+                    "footer": {"text": "USD/CLP Quantitative Engine — Protección Fail-Safe"}
+                }]
+            }
+            req = urllib.request.Request(
+                self.discord_webhook,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"},
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                return resp.status in (200, 204)
+        except Exception as exc:
+            logger.warning("Fallo al enviar alerta Fail-Safe a Discord: %s", exc)
+        return False
+
     def broadcast(self, signal: TradingSignal, price: float, prob_up: float,
                   regime: str, stop_loss: float, take_profit: float, date_str: str) -> None:
         msg = self._format_message(signal, price, prob_up, regime, stop_loss, take_profit, date_str)
@@ -1363,7 +1432,7 @@ class ResultsReporter:
                                  backtest: Optional[BacktestMetrics]) -> Tuple[Path, Path]:
         arr = np.array(fold_scores)
         data = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(_SANTIAGO_TZ).isoformat(),
             "signal_date": signal_date,
             "current_price": current_price,
             "signal": signal.name,
@@ -1398,7 +1467,7 @@ class ResultsReporter:
 
         md_content = f"""# Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`  
+**Fecha de Ejecución:** `{datetime.now(_SANTIAGO_TZ).strftime('%Y-%m-%d %H:%M:%S CLT')}`  
 **Fecha de Datos:** `{signal_date}`
 
 ---
@@ -1494,6 +1563,14 @@ def run_pipeline(force_retrain: bool = False, horizon: int = 10, cache_ttl: int 
     # 1. Descarga autónoma de datos
     fetcher = AutoDataFetcher(start="2013-01-01", ttl_hours=cache_ttl)
     price_df, macro_df, risk_df = fetcher.fetch_all()
+
+    # Validación Fail-Safe de Integridad de Datos
+    is_valid, validation_msg = DataIntegrityValidator.validate_pre_inference(price_df, macro_df, risk_df)
+    if not is_valid:
+        logger.error("❌ FALLO DE INTEGRIDAD DE DATOS (FAIL-SAFE ACTIVADO): %s", validation_msg)
+        if notify or os.environ.get("NOTIFY_ALERTS", "").lower() in ("1", "true", "yes"):
+            NotificationManager().send_fail_safe_alert("Fallo de Integridad en APIs de Mercado", validation_msg)
+        return
 
     # 2. Ingeniería de características y ratios
     logger.info("Construyendo matriz de caracteristicas macroestructurales...")

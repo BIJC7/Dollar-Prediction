@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-08-26T22:39:21.836055",
+  "timestamp": "2026-08-26T23:28:10.138608-04:00",
   "signal_date": "2026-08-26",
   "current_price": 912.77001953125,
   "signal": "BUY_USD",
-  "probability_usd_up": 0.9553667147708771,
+  "probability_usd_up": 0.955366714770877,
   "market_regime": "SYSTEMIC_STRESS",
   "vix": 15.210000038146973,
-  "stop_loss": 897.0951276506696,
-  "take_profit": 940.2010803222656,
+  "stop_loss": 897.0951276506697,
+  "take_profit": 940.2010803222655,
   "validation": {
     "n_folds": 9,
     "mean_directional_accuracy": 0.5105820105820106,
@@ -18,9 +18,9 @@
   "backtest": {
     "cumulative_return_pct": 0.9853936397182794,
     "annualized_return_pct": 0.7251419949651616,
-    "sharpe_ratio": 0.381973025726269,
-    "sortino_ratio": 0.7707146767641763,
-    "profit_factor": 1.2094288688832266,
+    "sharpe_ratio": 0.381973025726265,
+    "sortino_ratio": 0.7707146767641705,
+    "profit_factor": 1.209428868883224,
     "win_rate_pct": 50.0,
     "max_drawdown_pct": -3.4563266685182814,
     "total_trades": 8
