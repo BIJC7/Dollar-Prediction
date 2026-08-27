@@ -1,0 +1,57 @@
+name: USD/CLP Semiannual HealthCheck & Annual Reminder
+
+on:
+  schedule:
+    # Semestral: 1 de Enero y 1 de Julio a las 08:00 CLT (12:00 UTC)
+    - cron: '0 12 1 1,7 *'
+    # Anual: 1 de Diciembre a las 08:00 CLT (12:00 UTC)
+    - cron: '0 12 1 12 *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Tipo de mantenimiento a ejecutar'
+        required: true
+        default: 'semestral'
+        type: choice
+        options:
+          - semestral
+          - anual
+
+permissions:
+  contents: read
+
+jobs:
+  maintenance:
+    name: Run Periodic Maintenance & Notification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Healthcheck or Reminder
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          # Si se dispara manualmente usa el input, si es por cron detecta el mes
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python maintenance_check.py "${{ github.event.inputs.mode }}"
+          else
+            MONTH=$(date +%m)
+            if [ "$MONTH" = "12" ]; then
+              python maintenance_check.py "anual"
+            else
+              python maintenance_check.py "semestral"
+            fi
+          fi
