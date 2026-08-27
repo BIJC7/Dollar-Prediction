@@ -1,19 +1,13 @@
 {
-<<<<<<< HEAD
-  "timestamp": "2026-08-27T02:22:50.184882",
-  "signal_date": "2026-08-13",
+  "timestamp": "2026-08-26T22:39:21.836055",
+  "signal_date": "2026-08-26",
   "current_price": 912.77001953125,
-=======
-  "timestamp": "2026-08-26T22:35:26.548209",
-  "signal_date": "2026-08-25",
-  "current_price": 912.1900024414062,
->>>>>>> a4e8291 (fix: Alinear inferencia en tiempo real a la última observación de mercado y ampliar TTL del modelo a 30 días)
   "signal": "BUY_USD",
-  "probability_usd_up": 0.9429468490463697,
+  "probability_usd_up": 0.9553667147708771,
   "market_regime": "SYSTEMIC_STRESS",
-  "vix": 15.449999809265137,
-  "stop_loss": 897.2522495814733,
-  "take_profit": 938.331069946289,
+  "vix": 15.210000038146973,
+  "stop_loss": 897.0951276506696,
+  "take_profit": 940.2010803222656,
   "validation": {
     "n_folds": 9,
     "mean_directional_accuracy": 0.5105820105820106,
@@ -24,23 +18,23 @@
   "backtest": {
     "cumulative_return_pct": 0.9853936397182794,
     "annualized_return_pct": 0.7251419949651616,
-    "sharpe_ratio": 0.381973025726265,
-    "sortino_ratio": 0.7707146767641705,
-    "profit_factor": 1.209428868883224,
+    "sharpe_ratio": 0.381973025726269,
+    "sortino_ratio": 0.7707146767641763,
+    "profit_factor": 1.2094288688832266,
     "win_rate_pct": 50.0,
     "max_drawdown_pct": -3.4563266685182814,
     "total_trades": 8
   },
   "top_shap_factors": {
-    "ema_12": 0.9590703248977661,
-    "ema_50": 0.8713424801826477,
-    "realized_vol_63": 0.6304144859313965,
-    "brl_return_5d": 0.43268799781799316,
-    "price_z_52w": 0.3878576159477234,
-    "terms_of_trade_proxy": 0.23342756927013397,
-    "hy_spread": 0.2199029177427292,
-    "copper": 0.1558682769536972,
-    "oil": 0.13719268143177032,
-    "vol_ratio_21_63": 0.10054729878902435
+    "ema_12": 0.9317219257354736,
+    "ema_50": 0.8279802799224854,
+    "realized_vol_63": 0.649399995803833,
+    "brl_return_5d": 0.47616681456565857,
+    "price_z_52w": 0.3770264685153961,
+    "terms_of_trade_proxy": 0.22901026904582977,
+    "hy_spread": 0.22896362841129303,
+    "copper": 0.16209186613559723,
+    "vol_ratio_21_63": 0.13937124609947205,
+    "return_5d": 0.13493132591247559
   }
 }

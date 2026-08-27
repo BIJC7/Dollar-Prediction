@@ -33,7 +33,7 @@ import urllib.parse
 import urllib.request
 import warnings
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple
@@ -164,7 +164,7 @@ class AutoDataFetcher:
     def __init__(self, start: str = "2013-01-01", end: Optional[str] = None,
                  cache_dir: Path = _CACHE_DIR, ttl_hours: int = _CACHE_TTL_HOURS) -> None:
         self.start     = start
-        self.end       = end or datetime.today().strftime("%Y-%m-%d")
+        self.end       = end or (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
         self.cache_dir = cache_dir
         self.ttl_hours = ttl_hours
         self.cache_dir.mkdir(parents=True, exist_ok=True)
