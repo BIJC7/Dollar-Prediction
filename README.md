@@ -73,25 +73,25 @@ El sistema opera de forma autónoma: descarga, alinea e imputa series macroecon�
 2. **Modelado de Regímenes con HMM:** Detección no supervisada de estados de mercado (*Gaussian Hidden Markov Model*) con regularización Dirichlet prior (`transmat_prior=1.05`), entrenado de forma aislada dentro de cada fold para garantizar cero fuga de datos hacia el futuro.
 3. **Selección Dinámica de Variables por Fold:** El conjunto de características se reevalúa y poda en cada ventana temporal expansiva evitando sesgos estáticos.
 4. **Validación Purged K-Fold con Embargo:** Purga las observaciones dentro del horizonte de la etiqueta ($H=10$ días) y añade una ventana de embargo porcentual para eliminar el sesgo de anticipación (*look-ahead bias*).
-5. **Backtest de Eventos Realista:** Ejecuta operaciones no solapadas con descuento de costos de transacción (5 pips).
+5. **Backtest de Eventos con Triple Barrera (López de Prado):** Simulación realista de eventos que ejecuta salidas dinámicas por Stop-Loss ($2.0\times\text{ATR}$), Take-Profit ($3.5\times\text{ATR}$) o expiración temporal ($H=10$ días), descontando costos de transacción (5 pips).
 
 ---
 
 ## 📊 Métricas de Validación Temporal (Walk-Forward OOS)
 
-Resultados en validación continua fuera de muestra (**Horizonte objetivo: 10 Días Hábiles**):
+Resultados de la simulación de eventos con **Triple Barrera** fuera de muestra:
 
 | Métrica de Desempeño | Valor OOS | Descripción y Contexto Metodológico |
 | :--- | :---: | :--- |
-| **Profit Factor Neto** | **`1.36`** | Ganancias brutas / Pérdidas brutas (costos de fricción incluidos) |
-| **Sharpe Ratio** | **`+0.547`** | Retorno anualizado ajustado por volatilidad |
-| **Sortino Ratio** | **`+1.313`** | Retorno penalizando únicamente la volatilidad bajista |
-| **Retorno Acumulado Simulado** | **`+6.41%`** | Retorno neto durante el período de validación temporal |
-| **Tasa de Acierto (Win Rate)** | **`48.4%`** | 15 operaciones ganadoras de 31 trades totales |
-| **Total de Operaciones OOS** | **31 trades** | Simulación de eventos con selección de features dinámica por fold |
-| **Máximo Drawdown Simulado** | **`-6.17%`** | Control estricto de caídas patrimoniales |
-| **Precisión Direccional Promedio** | **`47.1%`** | Mediana: `47.6%` \| Rango por fold: `[11.9%, 66.7%]` |
-| **Horizonte Temporal** | **10 Días Hábiles** | ~2 semanas (captura tendencias macro limpiando el ruido intradía) |
+| **Profit Factor Neto** | **`1.20`** | Ganancias brutas / Pérdidas brutas (con salidas reales por SL/TP y comisiones) |
+| **Sharpe Ratio** | **`+0.358`** | Retorno anualizado ajustado por volatilidad |
+| **Sortino Ratio** | **`+0.861`** | Retorno penalizando únicamente la volatilidad bajista |
+| **Retorno Acumulado Simulado** | **`+5.50%`** | Retorno neto durante el período de validación temporal |
+| **Tasa de Acierto (Win Rate)** | **`40.5%`** | 15 operaciones ganadoras de 37 trades totales |
+| **Total de Operaciones OOS** | **37 trades** | Simulación con salidas dinámicas por ATR y selección de features por fold |
+| **Máximo Drawdown Simulado** | **`-11.31%`** | Caída máxima durante el ciclo histórico simulado |
+| **Precisión Direccional Cruda** | **`47.1%`** | Mediana: `47.6%` \| Rango por fold: `[11.9%, 66.7%]` |
+| **Horizonte Temporal Máximo** | **10 Días Hábiles** | Límite temporal de salida si no se toca SL o TP previamente |
 
 > **Nota Metodológica:** Al operar con un horizonte de 10 días y filtros estrictos de convicción, el volumen de operaciones es bajo. Esto introduce varianza muestral natural en períodos cortos, requiriendo meses de ejecución continua para converger a la media estadística.
 

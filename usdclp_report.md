@@ -1,6 +1,6 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-08-26 23:38:05 CLT`  
+**Fecha de Ejecución:** `2026-08-26 23:53:51 CLT`  
 **Fecha de Datos:** `2026-08-26`
 
 ---
@@ -25,13 +25,13 @@
 | :--- | :--- |
 | **Precisión Direccional Promedio** | **`47.1%`** |
 | **Rango de DA (Mín / Máx)** | `[11.9%, 66.7%]` |
-| **Retorno Acumulado Simulado** | **`+6.41%`** |
-| **Retorno Anualizado (CAGR)** | **`+4.67%`** |
-| **Sharpe Ratio** | **`0.547`** |
-| **Sortino Ratio** | **`1.313`** |
-| **Profit Factor** | **`1.36`** |
-| **Win Rate en Operaciones** | **`48.4%`** (31 trades) |
-| **Máximo Drawdown** | **`-6.17%`** |
+| **Retorno Acumulado Simulado** | **`+5.50%`** |
+| **Retorno Anualizado (CAGR)** | **`+4.01%`** |
+| **Sharpe Ratio** | **`0.358`** |
+| **Sortino Ratio** | **`0.861`** |
+| **Profit Factor** | **`1.20`** |
+| **Win Rate en Operaciones** | **`40.5%`** (37 trades) |
+| **Máximo Drawdown** | **`-11.31%`** |
 
 ---
 

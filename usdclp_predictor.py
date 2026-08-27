@@ -926,36 +926,96 @@ class BacktestMetrics(NamedTuple):
 
 
 class EventDrivenBacktester:
-    def __init__(self, transaction_cost_pct: float = 0.0005, holding_period: int = 10) -> None:
+    def __init__(self, transaction_cost_pct: float = 0.0005, holding_period: int = 10,
+                 sl_atr_mult: float = 2.0, tp_atr_mult: float = 3.5) -> None:
         self.transaction_cost_pct = transaction_cost_pct
         self.holding_period       = holding_period
+        self.sl_atr_mult          = sl_atr_mult
+        self.tp_atr_mult          = tp_atr_mult
 
-    def run(self, close_prices: pd.Series, predictions: pd.Series,
-            probabilities: pd.Series) -> BacktestMetrics:
-        aligned = close_prices.reindex(predictions.index).dropna()
+    def run(self, price_df: pd.DataFrame, predictions: pd.Series,
+            probabilities: pd.Series, atr_series: Optional[pd.Series] = None) -> BacktestMetrics:
+        if isinstance(price_df, pd.Series):
+            aligned = pd.DataFrame({"close": price_df, "high": price_df, "low": price_df})
+        else:
+            aligned = price_df.reindex(predictions.index).dropna(subset=["close"]).copy()
+            if "high" not in aligned.columns:
+                aligned["high"] = aligned["close"]
+            if "low" not in aligned.columns:
+                aligned["low"] = aligned["close"]
+
         preds   = predictions.reindex(aligned.index)
         probs   = probabilities.reindex(aligned.index)
+        atr     = (atr_series.reindex(aligned.index).fillna(aligned["close"] * 0.01)
+                   if atr_series is not None else aligned["close"] * 0.01)
 
-        fwd_return = aligned.shift(-self.holding_period) / aligned - 1.0
         trade_returns: List[float] = []
         last_exit_idx = -1
+        n = len(aligned)
 
-        for idx in range(len(aligned)):
-            if idx <= last_exit_idx or idx + self.holding_period >= len(aligned):
+        for idx in range(n):
+            if idx <= last_exit_idx or idx + 1 >= n:
                 continue
 
             prob = probs.iloc[idx]
             pred = preds.iloc[idx]
-            fwd_ret = fwd_return.iloc[idx]
+            entry_p = float(aligned["close"].iloc[idx])
+            curr_atr = float(atr.iloc[idx])
 
-            if prob >= 0.54 and pred == 1:
-                pnl = fwd_ret - 2 * self.transaction_cost_pct
-                trade_returns.append(pnl)
-                last_exit_idx = idx + self.holding_period
-            elif prob <= 0.44 and pred == 0:
-                pnl = -fwd_ret - 2 * self.transaction_cost_pct
-                trade_returns.append(pnl)
-                last_exit_idx = idx + self.holding_period
+            is_buy  = (prob >= 0.54 and pred == 1)
+            is_sell = (prob <= 0.44 and pred == 0)
+
+            if not (is_buy or is_sell):
+                continue
+
+            exit_idx = min(idx + self.holding_period, n - 1)
+            trade_pnl = 0.0
+
+            if is_buy:
+                sl_price = entry_p - self.sl_atr_mult * curr_atr
+                tp_price = entry_p + self.tp_atr_mult * curr_atr
+                hit_exit = False
+                for t in range(idx + 1, exit_idx + 1):
+                    low_t  = float(aligned["low"].iloc[t])
+                    high_t = float(aligned["high"].iloc[t])
+                    if low_t <= sl_price:
+                        trade_pnl = (sl_price / entry_p) - 1.0 - 2 * self.transaction_cost_pct
+                        last_exit_idx = t
+                        hit_exit = True
+                        break
+                    elif high_t >= tp_price:
+                        trade_pnl = (tp_price / entry_p) - 1.0 - 2 * self.transaction_cost_pct
+                        last_exit_idx = t
+                        hit_exit = True
+                        break
+                if not hit_exit:
+                    final_p = float(aligned["close"].iloc[exit_idx])
+                    trade_pnl = (final_p / entry_p) - 1.0 - 2 * self.transaction_cost_pct
+                    last_exit_idx = exit_idx
+
+            elif is_sell:
+                sl_price = entry_p + self.sl_atr_mult * curr_atr
+                tp_price = entry_p - self.tp_atr_mult * curr_atr
+                hit_exit = False
+                for t in range(idx + 1, exit_idx + 1):
+                    low_t  = float(aligned["low"].iloc[t])
+                    high_t = float(aligned["high"].iloc[t])
+                    if high_t >= sl_price:
+                        trade_pnl = 1.0 - (sl_price / entry_p) - 2 * self.transaction_cost_pct
+                        last_exit_idx = t
+                        hit_exit = True
+                        break
+                    elif low_t <= tp_price:
+                        trade_pnl = 1.0 - (tp_price / entry_p) - 2 * self.transaction_cost_pct
+                        last_exit_idx = t
+                        hit_exit = True
+                        break
+                if not hit_exit:
+                    final_p = float(aligned["close"].iloc[exit_idx])
+                    trade_pnl = 1.0 - (final_p / entry_p) - 2 * self.transaction_cost_pct
+                    last_exit_idx = exit_idx
+
+            trade_returns.append(trade_pnl)
 
         if not trade_returns:
             return BacktestMetrics(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -1667,11 +1727,17 @@ def run_pipeline(force_retrain: bool = False, horizon: int = 10, cache_ttl: int 
     backtest_metrics: Optional[BacktestMetrics] = None
     if oos_preds is not None and not oos_preds.empty:
         try:
-            backtester = EventDrivenBacktester(transaction_cost_pct=0.0005, holding_period=horizon)
+            backtester = EventDrivenBacktester(
+                transaction_cost_pct=0.0005,
+                holding_period=horizon,
+                sl_atr_mult=2.0,
+                tp_atr_mult=3.5
+            )
             backtest_metrics = backtester.run(
-                close_prices  = price_df["close"],
+                price_df      = price_df,
                 predictions   = oos_preds["pred"],
                 probabilities = oos_preds["proba"],
+                atr_series    = full_df["atr_14"] if "atr_14" in full_df.columns else None
             )
         except Exception as exc:
             logger.warning("Error en Backtester: %s", exc)
