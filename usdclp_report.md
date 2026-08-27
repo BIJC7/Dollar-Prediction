@@ -1,7 +1,7 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-08-26 23:53:51 CLT`  
-**Fecha de Datos:** `2026-08-26`
+**Fecha de Ejecución:** `2026-08-27 18:44:46 CLT`  
+**Fecha de Datos:** `2026-08-27`
 
 ---
 
@@ -10,12 +10,12 @@
 | Métrica | Valor |
 | :--- | :--- |
 | **Señal de Trading** | **`SELL_USD`** |
-| **Probabilidad Estimada Alza USD** | **`13.9%`** |
-| **Régimen de Mercado (HMM)** | `MODERATE_VOLATILITY` |
-| **Precio Actual USD/CLP** | **$912.77 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$928.44 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$885.34 CLP** |
-| **Nivel de VIX** | `15.2` |
+| **Probabilidad Estimada Alza USD** | **`38.3%`** |
+| **Régimen de Mercado (HMM)** | `SYSTEMIC_STRESS` |
+| **Precio Actual USD/CLP** | **$926.38 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$942.63 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$897.95 CLP** |
+| **Nivel de VIX** | `14.5` |
 
 ---
 
@@ -38,16 +38,16 @@
 ## 🔍 Factores de Mayor Impacto (Explicabilidad SHAP)
 
 ```
-us10y                               : +0.620986
-return_3d                           : +0.613473
-hy_spread_z_63d                     : +0.552638
-atr_14                              : +0.354905
-realized_vol_21                     : +0.280641
-ema_12                              : +0.165017
-macd_line                           : +0.159838
-copper                              : +0.146898
-cny_usdclp_corr_21d                 : +0.135594
-hy_spread                           : +0.121098
+oil                                 : +0.697916
+us_10y2y                            : +0.397046
+vol_ratio_21_63                     : +0.311651
+sma_50                              : +0.269710
+ema_12                              : +0.253173
+return_10d                          : +0.248654
+cny_usdclp_corr_21d                 : +0.243070
+hy_spread_change_5d                 : +0.238166
+dxy                                 : +0.233083
+vix_z_63d                           : +0.137266
 ```
 
 ---
