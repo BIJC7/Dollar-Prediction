@@ -78,9 +78,13 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 logging.getLogger("hmmlearn").setLevel(logging.ERROR)
 
 def _load_dotenv() -> None:
-    """Carga variables de entorno desde un archivo .env local si existe."""
-    env_file = Path(".env")
-    if not env_file.exists():
+    """Carga variables de entorno desde un archivo .env local o junto al script si existe."""
+    candidates = [
+        Path(".env"),
+        Path(__file__).resolve().parent / ".env"
+    ]
+    env_file = next((p for p in candidates if p.exists()), None)
+    if not env_file:
         return
     try:
         with open(env_file, "r", encoding="utf-8") as f:
@@ -90,7 +94,7 @@ def _load_dotenv() -> None:
                     continue
                 k, v = line.split("=", 1)
                 k = k.strip()
-                v = v.strip().strip("'"")
+                v = v.strip().strip("'\"")
                 if k and k not in os.environ:
                     os.environ[k] = v
     except Exception as exc:
