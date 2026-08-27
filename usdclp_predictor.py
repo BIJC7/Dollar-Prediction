@@ -1211,21 +1211,19 @@ class UsdClpPredictionPipeline:
         all_true:    List[pd.Series] = []
         windows = self.walk_forward.generate_expanding_windows(len(feature_matrix))
 
-        if self.feature_selector is not None:
-            init_end = self.walk_forward.min_train_size
-            X_init   = feature_matrix.iloc[:init_end].ffill().bfill().fillna(0)
-            y_init   = target.iloc[:init_end]
-            feature_matrix = self.feature_selector.fit_transform(X_init, y_init).reindex(
-                feature_matrix.index).ffill().bfill().fillna(0)
-            feature_matrix = feature_matrix[self.feature_selector.selected_cols_].copy()
-
         for i, (train_idx, test_idx) in enumerate(windows, 1):
             if len(train_idx) < 50 or len(test_idx) == 0:
                 continue
-            X_train = feature_matrix.iloc[train_idx].ffill().bfill().fillna(0)
-            y_train = target.iloc[train_idx]
-            X_test  = feature_matrix.iloc[test_idx].ffill().bfill().fillna(0)
-            y_test  = target.iloc[test_idx]
+            X_train_raw = feature_matrix.iloc[train_idx].ffill().bfill().fillna(0)
+            y_train     = target.iloc[train_idx]
+            X_test_raw  = feature_matrix.iloc[test_idx].ffill().bfill().fillna(0)
+            y_test      = target.iloc[test_idx]
+
+            if self.feature_selector is not None:
+                X_train = self.feature_selector.fit_transform(X_train_raw, y_train)
+                X_test  = self.feature_selector.transform(X_test_raw)
+            else:
+                X_train, X_test = X_train_raw, X_test_raw
 
             self.ensemble_model.fit(X_train, y_train)
             probas = self.ensemble_model.predict_proba(X_test)
@@ -1238,6 +1236,14 @@ class UsdClpPredictionPipeline:
             logger.info("Fold %2d/%d  DA=%.4f  (train=%4d, test=%3d, %s -> %s)",
                         i, len(windows), score, len(train_idx), len(test_idx),
                         X_test.index[0].date(), X_test.index[-1].date())
+
+        # Ajuste final sobre toda la serie histórica para inferencia en producción
+        if self.feature_selector is not None:
+            X_full_clean = feature_matrix.ffill().bfill().fillna(0)
+            X_full_sel   = self.feature_selector.fit_transform(X_full_clean, target)
+            self.ensemble_model.fit(X_full_sel, target)
+        else:
+            self.ensemble_model.fit(feature_matrix.ffill().bfill().fillna(0), target)
 
         if all_preds:
             self.oos_predictions_ = pd.DataFrame({
@@ -1390,7 +1396,7 @@ class ResultsReporter:
         mean_da = float(arr.mean()) if len(arr) > 0 else 0.0
         sep = "=" * 70
         logger.info(sep)
-        logger.info("  RESUMEN EJECUTIVO USD/CLP (v5.0 Enterprise)")
+        logger.info("  RESUMEN EJECUTIVO USD/CLP (Quantitative Engine)")
         logger.info(sep)
         logger.info("  Validacion Walk-Forward (%d Folds OOS):", len(fold_scores))
         logger.info("    Precision Direccional Promedio : %.4f (%.1f%%)", mean_da, mean_da * 100)
@@ -1554,7 +1560,7 @@ def _build_volatility_adjusted_target(close: pd.Series, horizon: int = 10) -> pd
 def run_pipeline(force_retrain: bool = False, horizon: int = 10, cache_ttl: int = _CACHE_TTL_HOURS,
                  notify: bool = False) -> None:
     logger.info("=" * 70)
-    logger.info("  USD/CLP ALGORITHMIC ENGINE v5.0 Enterprise")
+    logger.info("  USD/CLP Quantitative Research & Algorithmic Engine")
     logger.info("  Directorio de Cache : %s", _CACHE_DIR)
     logger.info("  Modelo Persistente  : %s", _MODEL_PATH)
     logger.info("  Horizonte Objetivo  : %d dias habiles", horizon)
