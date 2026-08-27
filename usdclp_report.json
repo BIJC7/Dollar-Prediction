@@ -1,40 +1,46 @@
 {
+<<<<<<< HEAD
   "timestamp": "2026-08-27T02:22:50.184882",
   "signal_date": "2026-08-13",
   "current_price": 912.77001953125,
+=======
+  "timestamp": "2026-08-26T22:35:26.548209",
+  "signal_date": "2026-08-25",
+  "current_price": 912.1900024414062,
+>>>>>>> a4e8291 (fix: Alinear inferencia en tiempo real a la última observación de mercado y ampliar TTL del modelo a 30 días)
   "signal": "BUY_USD",
-  "probability_usd_up": 0.929131841659546,
+  "probability_usd_up": 0.9429468490463697,
   "market_regime": "SYSTEMIC_STRESS",
-  "vix": 15.210000038146973,
-  "stop_loss": 897.0951276506696,
-  "take_profit": 940.2010803222656,
+  "vix": 15.449999809265137,
+  "stop_loss": 897.2522495814733,
+  "take_profit": 938.331069946289,
   "validation": {
-    "n_folds": 28,
-    "mean_directional_accuracy": 0.48674886621315194,
-    "median_da": 0.5049603174603174,
-    "min_da": 0.12698412698412698,
-    "max_da": 0.8253968253968254
+    "n_folds": 9,
+    "mean_directional_accuracy": 0.5105820105820106,
+    "median_da": 0.47619047619047616,
+    "min_da": 0.11904761904761904,
+    "max_da": 1.0
   },
   "backtest": {
-    "cumulative_return_pct": 1.7980662654610402,
-    "annualized_return_pct": 0.2559258211817905,
-    "sharpe_ratio": 0.3275767673740678,
-    "sortino_ratio": 0.4343403059121389,
-    "profit_factor": 1.1839984596727358,
-    "win_rate_pct": 58.333333333333336,
-    "max_drawdown_pct": -6.135851849876793,
-    "total_trades": 12
+    "cumulative_return_pct": 0.9853936397182794,
+    "annualized_return_pct": 0.7251419949651616,
+    "sharpe_ratio": 0.381973025726265,
+    "sortino_ratio": 0.7707146767641705,
+    "profit_factor": 1.209428868883224,
+    "win_rate_pct": 50.0,
+    "max_drawdown_pct": -3.4563266685182814,
+    "total_trades": 8
   },
   "top_shap_factors": {
-    "us10y": 0.6776156425476074,
-    "macd_signal": 0.45690351724624634,
-    "rsi_14": 0.44390785694122314,
-    "sp500": 0.40535828471183777,
-    "tot_return_21d": 0.30907773971557617,
-    "macd_line": 0.27719444036483765,
-    "atr_14": 0.19660447537899017,
-    "copper_usdclp_corr_21d": 0.18637172877788544,
-    "macd_hist": 0.1489589661359787,
-    "realized_vol_63": 0.14806199073791504
+    "ema_12": 0.9590703248977661,
+    "ema_50": 0.8713424801826477,
+    "realized_vol_63": 0.6304144859313965,
+    "brl_return_5d": 0.43268799781799316,
+    "price_z_52w": 0.3878576159477234,
+    "terms_of_trade_proxy": 0.23342756927013397,
+    "hy_spread": 0.2199029177427292,
+    "copper": 0.1558682769536972,
+    "oil": 0.13719268143177032,
+    "vol_ratio_21_63": 0.10054729878902435
   }
 }

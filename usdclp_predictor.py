@@ -109,7 +109,7 @@ _CACHE_DIR: Path = Path(
 )
 _CACHE_TTL_HOURS: int = int(os.environ.get("USDCLP_CACHE_TTL_HOURS", "12"))
 _MODEL_PATH: Path     = Path(os.environ.get("USDCLP_MODEL_PATH", "./usdclp_model.pkl"))
-_MODEL_TTL_HOURS: int = 24
+_MODEL_TTL_HOURS: int = 720
 
 
 # ===========================================================================
@@ -572,23 +572,27 @@ class PurgedKFoldEmbargo(BaseCrossValidator):
 
 class WalkForwardOrchestrator:
     def __init__(self, cross_validator: PurgedKFoldEmbargo,
-                 min_train_size: int = 600, step_size: int = 63) -> None:
+                 min_train_size: int = 250, step_size: int = 42) -> None:
         self.cross_validator = cross_validator
         self.min_train_size  = min_train_size
         self.step_size       = step_size
 
     def generate_expanding_windows(self, n_samples: int) -> List[Tuple[np.ndarray, np.ndarray]]:
         windows: List[Tuple[np.ndarray, np.ndarray]] = []
-        start        = self.min_train_size
-        embargo_size = int(n_samples * self.cross_validator.embargo_pct)
-        horizon      = self.cross_validator.label_horizon
-        while start + self.step_size <= n_samples:
+        eff_min_train = min(self.min_train_size, int(n_samples * 0.4))
+        start         = eff_min_train
+        embargo_size  = max(1, int(n_samples * self.cross_validator.embargo_pct))
+        horizon       = self.cross_validator.label_horizon
+        while start < n_samples:
             train_end  = start
             test_start = min(train_end + horizon, n_samples)
             test_end   = min(test_start + self.step_size, n_samples)
+            if test_start >= test_end:
+                break
             train_idx  = np.arange(0, max(0, train_end - horizon))
             test_idx   = np.arange(test_start, test_end)
-            windows.append((train_idx, test_idx))
+            if len(train_idx) > 50 and len(test_idx) > 0:
+                windows.append((train_idx, test_idx))
             start += self.step_size + embargo_size
         return windows
 
@@ -1503,9 +1507,10 @@ def run_pipeline(force_retrain: bool = False, horizon: int = 10, cache_ttl: int 
     feature_cols = [c for c in full_df.columns
                     if c.lower() not in _raw and pd.api.types.is_numeric_dtype(full_df[c])]
 
-    combined       = pd.concat([full_df[feature_cols], target], axis=1).dropna()
-    feature_matrix = combined[feature_cols]
-    target_aligned = combined["target"]
+    feature_matrix_live = full_df[feature_cols]
+    combined            = pd.concat([feature_matrix_live, target], axis=1).dropna()
+    feature_matrix      = combined[feature_cols]
+    target_aligned      = combined["target"]
 
     logger.info("Matriz de entrenamiento: %d filas × %d columnas | Clases {0: %d, 1: %d}",
                 len(feature_matrix), len(feature_cols),
@@ -1529,7 +1534,7 @@ def run_pipeline(force_retrain: bool = False, horizon: int = 10, cache_ttl: int 
     # 4. Entrenamiento si es necesario
     if not skip_train:
         cross_val = PurgedKFoldEmbargo(n_splits=5, label_horizon=horizon, embargo_pct=0.01)
-        walk_fwd  = WalkForwardOrchestrator(cross_validator=cross_val, min_train_size=600, step_size=63)
+        walk_fwd  = WalkForwardOrchestrator(cross_validator=cross_val, min_train_size=250, step_size=42)
         regime_det = HmmRegimeDetector(n_states=3, n_iter=300, n_restarts=5)
         ensemble   = HybridCalibratedEnsemble(regime_detector=regime_det, linear_weight=0.20)
         feature_selector = FeatureSelector(max_features=35, correlation_threshold=0.90)
@@ -1561,7 +1566,7 @@ def run_pipeline(force_retrain: bool = False, horizon: int = 10, cache_ttl: int 
         })
     else:
         cross_val = PurgedKFoldEmbargo(n_splits=5, label_horizon=horizon, embargo_pct=0.01)
-        walk_fwd  = WalkForwardOrchestrator(cross_validator=cross_val, min_train_size=600, step_size=63)
+        walk_fwd  = WalkForwardOrchestrator(cross_validator=cross_val, min_train_size=250, step_size=42)
         smoother  = SignalSmoother(span=3)
         risk_mgr  = RiskManager(RiskLimits())
         decision  = DecisionMatrix(smoother, risk_mgr, buy_threshold=0.54, sell_threshold=0.44)
@@ -1589,7 +1594,7 @@ def run_pipeline(force_retrain: bool = False, horizon: int = 10, cache_ttl: int 
             logger.warning("Error en Backtester: %s", exc)
 
     # 6. Inferencia en Tiempo Real
-    latest       = feature_matrix.iloc[[-1]]
+    latest       = feature_matrix_live.iloc[[-1]]
     sma_cross    = float(full_df["sma_cross"].iloc[-1]) if "sma_cross" in full_df.columns else 1.0
     momentum_ser = pd.Series([sma_cross], index=latest.index)
     live_vix     = float(risk_df["vix"].dropna().iloc[-1]) if "vix" in risk_df.columns and not risk_df["vix"].dropna().empty else 20.0
@@ -1651,7 +1656,7 @@ def run_pipeline(force_retrain: bool = False, horizon: int = 10, cache_ttl: int 
         backtest       = backtest_metrics,
     )
 
-    predictions_path = reporter.save_predictions_csv(feature_matrix, ensemble, feature_selector)
+    predictions_path = reporter.save_predictions_csv(feature_matrix_live, ensemble, feature_selector)
 
     # 9. Dashboard Gráfico
     try:
