@@ -1,7 +1,7 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-08-27 18:44:46 CLT`  
-**Fecha de Datos:** `2026-08-27`
+**Fecha de Ejecución:** `2026-08-27 21:33:34 CLT`  
+**Fecha de Datos:** `2026-08-28`
 
 ---
 
@@ -10,11 +10,11 @@
 | Métrica | Valor |
 | :--- | :--- |
 | **Señal de Trading** | **`SELL_USD`** |
-| **Probabilidad Estimada Alza USD** | **`38.3%`** |
+| **Probabilidad Estimada Alza USD** | **`37.7%`** |
 | **Régimen de Mercado (HMM)** | `SYSTEMIC_STRESS` |
-| **Precio Actual USD/CLP** | **$926.38 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$942.63 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$897.95 CLP** |
+| **Precio Actual USD/CLP** | **$926.00 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$943.09 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$896.10 CLP** |
 | **Nivel de VIX** | `14.5` |
 
 ---
@@ -38,16 +38,16 @@
 ## 🔍 Factores de Mayor Impacto (Explicabilidad SHAP)
 
 ```
-oil                                 : +0.697916
-us_10y2y                            : +0.397046
-vol_ratio_21_63                     : +0.311651
-sma_50                              : +0.269710
-ema_12                              : +0.253173
-return_10d                          : +0.248654
-cny_usdclp_corr_21d                 : +0.243070
-hy_spread_change_5d                 : +0.238166
-dxy                                 : +0.233083
-vix_z_63d                           : +0.137266
+oil                                 : +0.670336
+us_10y2y                            : +0.399403
+vol_ratio_21_63                     : +0.339800
+sma_50                              : +0.265996
+dxy                                 : +0.257581
+hy_spread_change_5d                 : +0.253882
+cny_usdclp_corr_21d                 : +0.244855
+return_10d                          : +0.240761
+ema_12                              : +0.236679
+vix_z_63d                           : +0.138505
 ```
 
 ---
