@@ -1,6 +1,6 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-09-04 15:43:34 CLT`  
+**Fecha de Ejecución:** `2026-09-04 18:30:12 CLT`  
 **Fecha de Datos:** `2026-09-04`
 
 ---
@@ -10,12 +10,12 @@
 | Métrica | Valor |
 | :--- | :--- |
 | **Señal de Trading** | **`SELL_USD`** |
-| **Probabilidad Estimada Alza USD** | **`37.0%`** |
+| **Probabilidad Estimada Alza USD** | **`36.5%`** |
 | **Régimen de Mercado (HMM)** | `SYSTEMIC_STRESS` |
-| **Precio Actual USD/CLP** | **$932.90 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$950.85 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$901.49 CLP** |
-| **Nivel de VIX** | `14.3` |
+| **Precio Actual USD/CLP** | **$933.68 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$951.63 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$902.27 CLP** |
+| **Nivel de VIX** | `14.5` |
 
 ---
 
@@ -40,8 +40,8 @@
 ```
 oil                                 : +0.535048
 realized_vol_63                     : +0.475538
-us_10y2y                            : +0.350959
-vol_ratio_21_63                     : +0.345624
+us_10y2y                            : +0.354096
+vol_ratio_21_63                     : +0.345781
 hy_spread_change_5d                 : +0.329391
 sma_50                              : +0.257769
 return_10d                          : +0.254763
