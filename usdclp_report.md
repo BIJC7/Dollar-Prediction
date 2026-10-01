@@ -1,7 +1,7 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-09-30 21:07:43 CLT`  
-**Fecha de Datos:** `2026-09-30`
+**Fecha de Ejecución:** `2026-10-01 13:45:49 CLT`  
+**Fecha de Datos:** `2026-10-01`
 
 ---
 
@@ -10,12 +10,12 @@
 | Métrica | Valor |
 | :--- | :--- |
 | **Señal de Trading** | **`SELL_USD`** |
-| **Probabilidad Estimada Alza USD** | **`22.9%`** |
-| **Régimen de Mercado (HMM)** | `SYSTEMIC_STRESS` |
-| **Precio Actual USD/CLP** | **$973.00 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$997.08 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$930.85 CLP** |
-| **Nivel de VIX** | `16.3` |
+| **Probabilidad Estimada Alza USD** | **`3.3%`** |
+| **Régimen de Mercado (HMM)** | `CONSOLIDATION` |
+| **Precio Actual USD/CLP** | **$986.35 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$1,010.16 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$944.68 CLP** |
+| **Nivel de VIX** | `16.9` |
 
 ---
 
@@ -23,31 +23,31 @@
 
 | Métrica de Desempeño | Valor |
 | :--- | :--- |
-| **Precisión Direccional Promedio** | **`47.1%`** |
-| **Rango de DA (Mín / Máx)** | `[11.9%, 66.7%]` |
-| **Retorno Acumulado Simulado** | **`+5.50%`** |
-| **Retorno Anualizado (CAGR)** | **`+4.01%`** |
-| **Sharpe Ratio** | **`0.358`** |
-| **Sortino Ratio** | **`0.861`** |
-| **Profit Factor** | **`1.20`** |
-| **Win Rate en Operaciones** | **`40.5%`** (37 trades) |
-| **Máximo Drawdown** | **`-11.31%`** |
+| **Precisión Direccional Promedio** | **`54.2%`** |
+| **Rango de DA (Mín / Máx)** | `[35.7%, 61.9%]` |
+| **Retorno Acumulado Simulado** | **`+1.34%`** |
+| **Retorno Anualizado (CAGR)** | **`+1.26%`** |
+| **Sharpe Ratio** | **`0.166`** |
+| **Sortino Ratio** | **`0.378`** |
+| **Profit Factor** | **`1.08`** |
+| **Win Rate en Operaciones** | **`37.0%`** (27 trades) |
+| **Máximo Drawdown** | **`-3.85%`** |
 
 ---
 
 ## 🔍 Factores de Mayor Impacto (Explicabilidad SHAP)
 
 ```
-oil                                 : +0.524695
-macd_line                           : +0.484745
-hy_spread_change_5d                 : +0.386047
-us_10y2y                            : +0.352242
-sma_50                              : +0.276334
-return_5d                           : +0.274905
-return_10d                          : +0.271126
-return_21d                          : +0.232961
-dxy                                 : +0.215929
-copper_gold_ret_21d                 : +0.190087
+hy_spread_z_63d                     : +0.639900
+return_10d                          : +0.565397
+dxy                                 : +0.551590
+cny_usdclp_corr_21d                 : +0.390926
+hy_spread_change_5d                 : +0.323109
+return_21d                          : +0.304758
+oil                                 : +0.238798
+price_z_52w                         : +0.193947
+copper_usdclp_corr_21d              : +0.188320
+bb_width                            : +0.187876
 ```
 
 ---
