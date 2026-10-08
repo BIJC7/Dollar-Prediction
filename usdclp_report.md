@@ -1,7 +1,7 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-10-07 21:21:52 CLT`  
-**Fecha de Datos:** `2026-10-07`
+**Fecha de Ejecución:** `2026-10-08 16:07:42 CLT`  
+**Fecha de Datos:** `2026-10-08`
 
 ---
 
@@ -10,12 +10,12 @@
 | Métrica | Valor |
 | :--- | :--- |
 | **Señal de Trading** | **`SELL_USD`** |
-| **Probabilidad Estimada Alza USD** | **`4.3%`** |
+| **Probabilidad Estimada Alza USD** | **`2.6%`** |
 | **Régimen de Mercado (HMM)** | `CONSOLIDATION` |
-| **Precio Actual USD/CLP** | **$972.89 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$997.32 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$930.13 CLP** |
-| **Nivel de VIX** | `15.1` |
+| **Precio Actual USD/CLP** | **$976.20 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$1,001.63 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$931.69 CLP** |
+| **Nivel de VIX** | `15.7` |
 
 ---
 
@@ -38,16 +38,16 @@
 ## 🔍 Factores de Mayor Impacto (Explicabilidad SHAP)
 
 ```
-hy_spread_z_63d                     : +0.717928
-return_10d                          : +0.569300
-dxy                                 : +0.521266
-cny_usdclp_corr_21d                 : +0.504371
-return_21d                          : +0.397414
-price_z_52w                         : +0.216981
-bb_width                            : +0.214088
-copper_usdclp_corr_21d              : +0.205186
-cny_fred                            : +0.199797
-bb_pct_b                            : +0.176675
+hy_spread_z_63d                     : +0.691949
+return_10d                          : +0.618219
+dxy                                 : +0.528505
+cny_usdclp_corr_21d                 : +0.487016
+return_21d                          : +0.313571
+copper_usdclp_corr_21d              : +0.202451
+bb_width                            : +0.196521
+price_z_52w                         : +0.191958
+return_3d                           : +0.183734
+bb_pct_b                            : +0.177932
 ```
 
 ---
