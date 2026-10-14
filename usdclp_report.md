@@ -1,6 +1,6 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-10-14 14:45:44 CLT`  
+**Fecha de Ejecución:** `2026-10-14 17:49:08 CLT`  
 **Fecha de Datos:** `2026-10-14`
 
 ---
@@ -12,9 +12,9 @@
 | **Señal de Trading** | **`SELL_USD`** |
 | **Probabilidad Estimada Alza USD** | **`3.6%`** |
 | **Régimen de Mercado (HMM)** | `CONSOLIDATION` |
-| **Precio Actual USD/CLP** | **$985.27 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$1,008.97 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$943.80 CLP** |
+| **Precio Actual USD/CLP** | **$984.88 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$1,008.58 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$943.41 CLP** |
 | **Nivel de VIX** | `16.9` |
 
 ---
@@ -38,16 +38,16 @@
 ## 🔍 Factores de Mayor Impacto (Explicabilidad SHAP)
 
 ```
-hy_spread_z_63d                     : +0.577513
+hy_spread_z_63d                     : +0.577297
 return_10d                          : +0.571034
-dxy                                 : +0.540231
-cny_usdclp_corr_21d                 : +0.417564
-hy_spread_change_5d                 : +0.324018
+dxy                                 : +0.537726
+cny_usdclp_corr_21d                 : +0.416097
+hy_spread_change_5d                 : +0.326468
 return_21d                          : +0.304573
-oil                                 : +0.238398
-price_z_52w                         : +0.204236
-cny_fred                            : +0.189577
-bb_width                            : +0.183196
+oil                                 : +0.237216
+price_z_52w                         : +0.199384
+cny_fred                            : +0.190650
+bb_width                            : +0.179002
 ```
 
 ---
