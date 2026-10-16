@@ -1,6 +1,6 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-10-16 17:00:27 CLT`  
+**Fecha de Ejecución:** `2026-10-16 19:58:50 CLT`  
 **Fecha de Datos:** `2026-10-16`
 
 ---
@@ -12,10 +12,10 @@
 | **Señal de Trading** | **`SELL_USD`** |
 | **Probabilidad Estimada Alza USD** | **`13.5%`** |
 | **Régimen de Mercado (HMM)** | `MODERATE_VOLATILITY` |
-| **Precio Actual USD/CLP** | **$984.40 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$1,010.77 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$938.26 CLP** |
-| **Nivel de VIX** | `20.5` |
+| **Precio Actual USD/CLP** | **$984.38 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$1,010.75 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$938.24 CLP** |
+| **Nivel de VIX** | `20.0` |
 
 ---
 
