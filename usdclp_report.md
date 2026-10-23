@@ -1,6 +1,6 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-10-23 17:32:37 CLT`  
+**Fecha de Ejecución:** `2026-10-23 20:23:28 CLT`  
 **Fecha de Datos:** `2026-10-23`
 
 ---

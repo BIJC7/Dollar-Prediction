@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-10-23T17:32:37.864957-03:00",
+  "timestamp": "2026-10-23T20:23:28.532301-03:00",
   "signal_date": "2026-10-23",
   "current_price": 994.760009765625,
   "signal": "SELL_USD",
-  "probability_usd_up": 0.09042410786456985,
+  "probability_usd_up": 0.09034143928438619,
   "market_regime": "MODERATE_VOLATILITY",
   "vix": 19.450000762939453,
   "stop_loss": 1022.629132952009,
