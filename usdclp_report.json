@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-10-28T18:47:33.516177-03:00",
+  "timestamp": "2026-10-28T21:17:32.078086-03:00",
   "signal_date": "2026-10-28",
-  "current_price": 987.4000244140625,
+  "current_price": 985.7999877929688,
   "signal": "SELL_USD",
-  "probability_usd_up": 0.02372484695281061,
+  "probability_usd_up": 0.021033450255452623,
   "market_regime": "CONSOLIDATION",
   "vix": 16.90999984741211,
-  "stop_loss": 1017.8444475446429,
-  "take_profit": 934.1222839355469,
+  "stop_loss": 1015.0929739815848,
+  "take_profit": 934.5372619628906,
   "validation": {
     "n_folds": 7,
     "mean_directional_accuracy": 0.5421768707482993,
@@ -26,15 +26,15 @@
     "total_trades": 27
   },
   "top_shap_factors": {
-    "hy_spread_z_63d": 0.7100768089294434,
-    "cny_usdclp_corr_21d": 0.5687498450279236,
-    "dxy": 0.5432308316230774,
-    "return_10d": 0.528830885887146,
-    "bb_width": 0.3666938841342926,
-    "cny_fred": 0.19623154401779175,
-    "copper_usdclp_corr_21d": 0.19454233348369598,
+    "hy_spread_z_63d": 0.6922804117202759,
+    "cny_usdclp_corr_21d": 0.5994181632995605,
+    "dxy": 0.5452172160148621,
+    "return_10d": 0.5093943476676941,
+    "bb_width": 0.37683507800102234,
+    "copper_usdclp_corr_21d": 0.21645587682724,
+    "cny_fred": 0.1990896463394165,
     "price_z_52w": 0.18637627363204956,
-    "oil": 0.14006945490837097,
-    "bb_pct_b": 0.12345066666603088
+    "return_3d": 0.16692310571670532,
+    "bb_pct_b": 0.15197519958019257
   }
 }
