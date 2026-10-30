@@ -1,6 +1,6 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-10-29 18:54:15 CLT`  
+**Fecha de Ejecución:** `2026-10-29 21:11:15 CLT`  
 **Fecha de Datos:** `2026-10-29`
 
 ---
@@ -10,11 +10,11 @@
 | Métrica | Valor |
 | :--- | :--- |
 | **Señal de Trading** | **`SELL_USD`** |
-| **Probabilidad Estimada Alza USD** | **`18.5%`** |
+| **Probabilidad Estimada Alza USD** | **`18.6%`** |
 | **Régimen de Mercado (HMM)** | `MODERATE_VOLATILITY` |
-| **Precio Actual USD/CLP** | **$985.07 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$1,015.50 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$931.81 CLP** |
+| **Precio Actual USD/CLP** | **$987.37 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$1,017.06 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$935.41 CLP** |
 | **Nivel de VIX** | `17.2` |
 
 ---
@@ -38,16 +38,16 @@
 ## 🔍 Factores de Mayor Impacto (Explicabilidad SHAP)
 
 ```
-us10y                               : +0.648165
-hy_spread_z_63d                     : +0.614820
+hy_spread_z_63d                     : +0.611846
+us10y                               : +0.610668
 realized_vol_63                     : +0.416857
-oil                                 : +0.406588
-copper                              : +0.357983
-tot_return_21d                      : +0.250184
-macd_hist                           : +0.246558
-copper_return_1d                    : +0.223163
+oil                                 : +0.405135
+copper                              : +0.349130
+macd_hist                           : +0.248740
+tot_return_21d                      : +0.241046
+copper_return_1d                    : +0.196466
 vol_ratio_21_63                     : +0.163658
-return_21d                          : +0.162909
+return_21d                          : +0.156197
 ```
 
 ---
