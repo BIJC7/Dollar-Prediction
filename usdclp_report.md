@@ -1,7 +1,7 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-11-01 13:30:25 CLT`  
-**Fecha de Datos:** `2026-10-30`
+**Fecha de Ejecución:** `2026-11-02 19:05:17 CLT`  
+**Fecha de Datos:** `2026-11-03`
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Métrica | Valor |
 | :--- | :--- |
-| **Señal de Trading** | **`HOLD`** |
-| **Probabilidad Estimada Alza USD** | **`44.7%`** |
-| **Régimen de Mercado (HMM)** | `MODERATE_VOLATILITY` |
-| **Precio Actual USD/CLP** | **$987.87 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$987.87 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$987.87 CLP** |
+| **Señal de Trading** | **`SELL_USD`** |
+| **Probabilidad Estimada Alza USD** | **`27.6%`** |
+| **Régimen de Mercado (HMM)** | `SYSTEMIC_STRESS` |
+| **Precio Actual USD/CLP** | **$976.85 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$1,004.69 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$928.13 CLP** |
 | **Nivel de VIX** | `19.4` |
 
 ---
@@ -38,16 +38,16 @@
 ## 🔍 Factores de Mayor Impacto (Explicabilidad SHAP)
 
 ```
-oil                                 : +0.913425
-us_10y2y                            : +0.473301
-cny_usdclp_corr_21d                 : +0.438728
-brl_return_5d                       : +0.344616
-hy_spread_z_63d                     : +0.335863
-terms_of_trade_proxy                : +0.231463
-ema_12                              : +0.218713
-macd_hist                           : +0.197208
-cny_fred                            : +0.170419
-ema_50                              : +0.155004
+bb_width                            : +0.606581
+tot_return_21d                      : +0.457966
+return_3d                           : +0.443009
+copper_usdclp_corr_21d              : +0.249344
+return_21d                          : +0.216277
+hy_spread                           : +0.201596
+price_z_52w                         : +0.141901
+cny_fred                            : +0.133040
+hy_spread_z_63d                     : +0.112283
+ema_50                              : +0.103712
 ```
 
 ---
