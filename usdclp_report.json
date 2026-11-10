@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-11-10T17:10:52.662211-03:00",
+  "timestamp": "2026-11-10T19:27:12.135600-03:00",
   "signal_date": "2026-11-10",
   "current_price": 983.6900024414062,
   "signal": "SELL_USD",
-  "probability_usd_up": 0.3443764077733885,
+  "probability_usd_up": 0.3404255825439981,
   "market_regime": "SYSTEMIC_STRESS",
-  "vix": 19.989999771118164,
+  "vix": 19.459999084472656,
   "stop_loss": 1013.4183523995536,
   "take_profit": 931.6653900146484,
   "validation": {
@@ -28,10 +28,10 @@
   "top_shap_factors": {
     "copper_usdclp_corr_21d": 0.4350997507572174,
     "return_3d": 0.36300477385520935,
-    "hy_spread": 0.22796039283275604,
+    "hy_spread": 0.23040001094341278,
     "us_10y2y": 0.21593518555164337,
-    "copper_return_1d": 0.20915333926677704,
     "return_21d": 0.20239996910095215,
+    "copper_return_1d": 0.1936286836862564,
     "realized_vol_21": 0.15211717784404755,
     "cny_fred": 0.14361952245235443,
     "price_z_52w": 0.13519500195980072,
