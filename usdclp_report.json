@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-11-13T19:44:03.564596-03:00",
+  "timestamp": "2026-11-13T21:59:39.227208-03:00",
   "signal_date": "2026-11-13",
-  "current_price": 994.1599731445312,
+  "current_price": 994.2100219726562,
   "signal": "SELL_USD",
-  "probability_usd_up": 0.2867854332845533,
+  "probability_usd_up": 0.28924220962377745,
   "market_regime": "SYSTEMIC_STRESS",
   "vix": 19.299999237060547,
-  "stop_loss": 1025.674037388393,
-  "take_profit": 939.0103607177734,
+  "stop_loss": 1025.2483694893974,
+  "take_profit": 939.8929138183594,
   "validation": {
     "n_folds": 7,
     "mean_directional_accuracy": 0.40012368583797153,
