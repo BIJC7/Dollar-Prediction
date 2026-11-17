@@ -1,6 +1,6 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-11-16 21:54:43 CLT`  
+**Fecha de Ejecución:** `2026-11-17 00:05:41 CLT`  
 **Fecha de Datos:** `2026-11-16`
 
 ---
@@ -41,10 +41,10 @@
 oil                                 : +0.848400
 copper_z_63d                        : +0.614946
 cny_usdclp_corr_21d                 : +0.480140
-us_10y2y                            : +0.398920
+us_10y2y                            : +0.397715
 brl_return_5d                       : +0.358104
 hy_spread_z_63d                     : +0.300922
-return_10d                          : +0.235092
+return_10d                          : +0.233888
 ema_12                              : +0.218029
 macd_hist                           : +0.205397
 return_3d                           : +0.158744
