@@ -1,7 +1,7 @@
 # Informe Cuantitativo de Posicionamiento USD/CLP (v5.0)
 
-**Fecha de Ejecución:** `2026-11-20 22:42:04 CLT`  
-**Fecha de Datos:** `2026-11-20`
+**Fecha de Ejecución:** `2026-11-23 21:32:52 CLT`  
+**Fecha de Datos:** `2026-11-23`
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Métrica | Valor |
 | :--- | :--- |
-| **Señal de Trading** | **`EMERGENCY_EXIT`** |
-| **Probabilidad Estimada Alza USD** | **`21.2%`** |
+| **Señal de Trading** | **`SELL_USD`** |
+| **Probabilidad Estimada Alza USD** | **`22.0%`** |
 | **Régimen de Mercado (HMM)** | `MODERATE_VOLATILITY` |
-| **Precio Actual USD/CLP** | **$1,014.91 CLP** |
-| **Stop-Loss Dinámico (2.0x ATR)** | **$1,014.91 CLP** |
-| **Take-Profit Sugerido (3.5x ATR)** | **$1,014.91 CLP** |
-| **Nivel de VIX** | `35.9` |
+| **Precio Actual USD/CLP** | **$990.22 CLP** |
+| **Stop-Loss Dinámico (2.0x ATR)** | **$1,021.14 CLP** |
+| **Take-Profit Sugerido (3.5x ATR)** | **$936.12 CLP** |
+| **Nivel de VIX** | `26.6` |
 
 ---
 
@@ -38,16 +38,16 @@
 ## 🔍 Factores de Mayor Impacto (Explicabilidad SHAP)
 
 ```
-oil                                 : +0.771757
-copper_z_63d                        : +0.589468
-us_10y2y                            : +0.535260
-hy_spread_z_63d                     : +0.347481
-brl_return_5d                       : +0.322373
-cny_usdclp_corr_21d                 : +0.276519
-hy_spread_change_5d                 : +0.272825
-return_21d                          : +0.233227
-terms_of_trade_proxy                : +0.232038
-return_10d                          : +0.212062
+oil                                 : +0.753635
+copper_z_63d                        : +0.587869
+us_10y2y                            : +0.512259
+cny_usdclp_corr_21d                 : +0.422739
+brl_return_5d                       : +0.346505
+hy_spread_z_63d                     : +0.325139
+hy_spread_change_5d                 : +0.310526
+macd_hist                           : +0.212296
+return_10d                          : +0.209277
+ema_12                              : +0.206391
 ```
 
 ---
