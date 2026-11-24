@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-11-24T01:56:18.365825-03:00",
-  "signal_date": "2026-11-23",
-  "current_price": 990.2245483398438,
+  "timestamp": "2026-11-24T19:53:15.930578-03:00",
+  "signal_date": "2026-11-24",
+  "current_price": 1032.81005859375,
   "signal": "SELL_USD",
-  "probability_usd_up": 0.2174203247686421,
+  "probability_usd_up": 0.1957438367439488,
   "market_regime": "MODERATE_VOLATILITY",
-  "vix": 26.6200008392334,
-  "stop_loss": 1021.1402500697544,
-  "take_profit": 936.1220703125,
+  "vix": 26.360000610351562,
+  "stop_loss": 1068.1808297293526,
+  "take_profit": 970.9112091064453,
   "validation": {
     "n_folds": 7,
     "mean_directional_accuracy": 0.40012368583797153,
@@ -26,15 +26,15 @@
     "total_trades": 30
   },
   "top_shap_factors": {
-    "oil": 0.7589606642723083,
-    "copper_z_63d": 0.58628249168396,
-    "us_10y2y": 0.5240079760551453,
-    "cny_usdclp_corr_21d": 0.4227391481399536,
-    "brl_return_5d": 0.35299643874168396,
-    "hy_spread_z_63d": 0.32513925433158875,
-    "hy_spread_change_5d": 0.3105261027812958,
-    "macd_hist": 0.2122955322265625,
-    "return_10d": 0.20927700400352478,
-    "ema_12": 0.206391379237175
+    "oil": 0.7540087103843689,
+    "us_10y2y": 0.5920762419700623,
+    "copper_z_63d": 0.5894680023193359,
+    "hy_spread_z_63d": 0.34748056530952454,
+    "return_21d": 0.3109034597873688,
+    "brl_return_5d": 0.2887137234210968,
+    "cny_usdclp_corr_21d": 0.2771148681640625,
+    "hy_spread_change_5d": 0.27382001280784607,
+    "terms_of_trade_proxy": 0.21343372762203217,
+    "return_10d": 0.20059971511363983
   }
 }
