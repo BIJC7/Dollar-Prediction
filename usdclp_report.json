@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-11-25T19:06:32.858537-03:00",
+  "timestamp": "2026-11-25T22:03:42.842178-03:00",
   "signal_date": "2026-11-25",
-  "current_price": 1038.0699462890625,
+  "current_price": 1032.550048828125,
   "signal": "SELL_USD",
-  "probability_usd_up": 0.19533258105129436,
+  "probability_usd_up": 0.18880029505836582,
   "market_regime": "MODERATE_VOLATILITY",
   "vix": 28.290000915527344,
-  "stop_loss": 1075.5721435546875,
-  "take_profit": 972.4411010742188,
+  "stop_loss": 1069.3436802455358,
+  "take_profit": 968.1611938476562,
   "validation": {
     "n_folds": 7,
     "mean_directional_accuracy": 0.40012368583797153,
@@ -26,15 +26,15 @@
     "total_trades": 30
   },
   "top_shap_factors": {
-    "oil": 0.7431004643440247,
-    "copper_z_63d": 0.6014649868011475,
+    "oil": 0.7341170907020569,
+    "copper_z_63d": 0.6109018325805664,
     "us_10y2y": 0.5765985250473022,
     "hy_spread_z_63d": 0.3472546637058258,
-    "return_21d": 0.313862681388855,
-    "cny_usdclp_corr_21d": 0.27503424882888794,
-    "brl_return_5d": 0.27065378427505493,
-    "hy_spread_change_5d": 0.2635252773761749,
-    "terms_of_trade_proxy": 0.21639281511306763,
+    "return_21d": 0.30920296907424927,
+    "brl_return_5d": 0.2905525267124176,
+    "hy_spread_change_5d": 0.2675613760948181,
+    "cny_usdclp_corr_21d": 0.26345130801200867,
+    "terms_of_trade_proxy": 0.21660807728767395,
     "return_10d": 0.2036481350660324
   }
 }
